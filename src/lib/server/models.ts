@@ -378,9 +378,15 @@ const buildModels = async (): Promise<ProcessedModel[]> => {
 				}
 			}
 
+			// Track which overrides matched an existing model
+			const matchedKeys = new Set<string>();
+
 			modelsRaw = modelsRaw.map((model) => {
-				const override = overrideMap.get(model.id ?? "") ?? overrideMap.get(model.name ?? "");
+				const key = model.id ?? model.name ?? "";
+				const override = overrideMap.get(key);
 				if (!override) return model;
+
+				matchedKeys.add(key);
 
 				const { id, name, ...rest } = override;
 				void id;
@@ -391,6 +397,26 @@ const buildModels = async (): Promise<ProcessedModel[]> => {
 					...rest,
 				};
 			});
+
+			// Add unmatched overrides that define their own endpoints as standalone models
+			for (const override of overrides) {
+				const key = (override.id ?? override.name ?? "").trim();
+				if (!key || matchedKeys.has(key)) continue;
+				if (!override.endpoints || override.endpoints.length === 0) continue;
+
+				logger.info(`[models] Adding standalone model from MODELS override: ${key}`);
+				modelsRaw.push({
+					id: override.id,
+					name: override.name ?? key,
+					displayName: override.displayName ?? key,
+					description: override.description,
+					preprompt: override.preprompt ?? "",
+					parameters: override.parameters,
+					endpoints: override.endpoints,
+					multimodal: override.multimodal ?? false,
+					unlisted: override.unlisted ?? false,
+				} as ModelConfig);
+			}
 		}
 
 		const builtModels = await Promise.all(
