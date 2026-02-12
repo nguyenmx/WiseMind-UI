@@ -51,6 +51,7 @@ export class Database {
 				instance: {
 					dbName: config.MONGODB_DB_NAME + (import.meta.env.MODE === "test" ? "-test" : ""),
 					dbPath: DB_FOLDER,
+					launchTimeout: 60000,
 				},
 				binary: {
 					version: "7.0.18",

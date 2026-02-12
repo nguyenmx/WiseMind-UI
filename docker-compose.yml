@@ -17,5 +17,21 @@ services:
       - mongodb-data:/data/db
     restart: always
 
+  ollama:
+    image: ollama/ollama
+    ports:
+      - 11434:11434
+    volumes:
+      - ollama-data:/root/.ollama
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        ollama serve &
+        sleep 5
+        ollama pull mistral
+        wait
+    restart: always
+
 volumes:
   mongodb-data:
+  ollama-data:
