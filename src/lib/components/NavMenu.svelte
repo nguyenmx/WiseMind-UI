@@ -136,7 +136,7 @@
 		class="flex select-none items-center rounded-xl text-lg font-semibold"
 		href="{publicConfig.PUBLIC_ORIGIN}{base}/"
 	>
-		<Logo classNames="dark:invert mr-[2px]" />
+		<Logo classNames="mr-[2px]" />
 		{publicConfig.PUBLIC_APP_NAME}
 	</a>
 	<a

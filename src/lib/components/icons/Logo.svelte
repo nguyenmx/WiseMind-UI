@@ -13,7 +13,14 @@
 <img
 	width="32"
 	height="32"
-	class={classNames}
+	class="dark:hidden {classNames}"
 	alt="{publicConfig.PUBLIC_APP_NAME} logo"
 	src="{publicConfig.assetPath}/logo.png"
+/>
+<img
+	width="32"
+	height="32"
+	class="hidden dark:block {classNames}"
+	alt="{publicConfig.PUBLIC_APP_NAME} logo"
+	src="{publicConfig.assetPath}/logo-dark.png"
 />

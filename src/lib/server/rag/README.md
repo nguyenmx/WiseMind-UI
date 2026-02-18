@@ -1,5 +1,5 @@
 # RAG (Retrieval-Augmented Generation) Module
-test
+
 This module injects retrieved document context into user messages before they are sent to the Qwen model. It ensures the model can answer domain-specific questions by grounding its responses in pre-indexed verification data.
 
 ## Architecture

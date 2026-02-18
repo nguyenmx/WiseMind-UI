@@ -27,7 +27,7 @@
 			<!-- <h2
 				class="flex translate-y-1 items-center text-3xl font-semibold text-gray-900 dark:text-gray-100"
 			>
-				<Logo classNames="mr-2 size-12 dark:invert" />
+				<Logo classNames="mr-2 size-12" />
 				{publicConfig.PUBLIC_APP_NAME}
 			</h2> -->
 			<div

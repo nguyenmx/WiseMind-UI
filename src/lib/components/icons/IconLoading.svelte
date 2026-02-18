@@ -1,22 +1,29 @@
 <script lang="ts">
+	import { onMount, onDestroy } from "svelte";
+
 	interface Props {
 		classNames?: string;
 	}
 
 	let { classNames = "" }: Props = $props();
+
+	const sayings = ["wi..", "mi..", "wi mi mi.."];
+
+	let index = $state(0);
+	let interval: ReturnType<typeof setInterval>;
+
+	onMount(() => {
+		index = Math.floor(Math.random() * sayings.length);
+		interval = setInterval(() => {
+			index = (index + 1) % sayings.length;
+		}, 1200);
+	});
+
+	onDestroy(() => {
+		clearInterval(interval);
+	});
 </script>
 
-<div class={"inline-flex h-8 flex-none items-center gap-1 " + classNames}>
-	<div
-		class="h-1 w-1 flex-none animate-bounce rounded-full bg-gray-500 dark:bg-gray-400"
-		style="animation-delay: 0.25s;"
-	></div>
-	<div
-		class="h-1 w-1 flex-none animate-bounce rounded-full bg-gray-500 dark:bg-gray-400"
-		style="animation-delay: 0.5s;"
-	></div>
-	<div
-		class="h-1 w-1 flex-none animate-bounce rounded-full bg-gray-500 dark:bg-gray-400"
-		style="animation-delay: 0.75s;"
-	></div>
-</div>
+<span class={"inline-flex h-8 items-center text-sm italic text-gray-500 dark:text-gray-400 " + classNames}>
+	{sayings[index]}
+</span>

@@ -20,16 +20,13 @@
 </script>
 
 <div class="my-auto grid items-center justify-center gap-8 text-center">
-	<div
-		class="flex -translate-y-16 select-none items-center rounded-xl text-3xl font-semibold md:-translate-y-12 md:text-5xl"
-	>
-		<Logo classNames="size-12 md:size-20 dark:invert mr-0.5" />
-		{publicConfig.PUBLIC_APP_NAME}
+	<div class="flex -translate-y-16 select-none justify-center md:-translate-y-12">
+		<Logo classNames="size-24 md:size-72" />
 	</div>
 	<!-- <div class="lg:col-span-1">
 		<div>
 			<div class="mb-3 flex items-center text-2xl font-semibold">
-				<Logo classNames="mr-1 flex-none dark:invert" />
+				<Logo classNames="mr-1 flex-none" />
 				{publicConfig.PUBLIC_APP_NAME}
 				<div
 					class="ml-3 flex h-6 items-center rounded-lg border border-gray-100 bg-gray-50 px-2 text-base text-gray-400 dark:border-gray-700/60 dark:bg-gray-800"
