@@ -15,5 +15,5 @@
 	height="32"
 	class={classNames}
 	alt="{publicConfig.PUBLIC_APP_NAME} logo"
-	src="{publicConfig.assetPath}/logo.svg"
+	src="{publicConfig.assetPath}/logo.png"
 />
