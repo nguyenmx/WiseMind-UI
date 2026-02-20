@@ -254,11 +254,11 @@
 		onkeydown={() => (isTapped = !isTapped)}
 	>
 		<MessageAvatar
-			classNames="mt-5 size-12 flex-none select-none rounded-full shadow-lg max-sm:hidden"
+			classNames="mt-5 size-14 flex-none select-none rounded-full shadow-lg max-sm:hidden"
 			animating={isLast && loading}
 		/>
 		<div
-			class="relative flex min-w-[60px] flex-col gap-2 break-words rounded-2xl border border-gray-100 bg-gradient-to-br from-gray-50 px-5 py-3.5 text-gray-600 prose-pre:my-2 dark:border-gray-800 dark:from-gray-800/80 dark:text-gray-300"
+			class="relative flex min-w-[60px] flex-col gap-2 break-words rounded-2xl border border-gray-100 bg-gradient-to-br from-gray-200 px-5 py-3.5 text-gray-600 prose-pre:my-2 dark:border-gray-800 dark:from-gray-800/80 dark:text-gray-300"
 		>
 			{#if message.files?.length}
 				<div class="flex h-fit flex-wrap gap-x-5 gap-y-2">
@@ -304,7 +304,7 @@
 									/>
 								{:else if part && part.trim().length > 0}
 									<div
-										class="prose max-w-none dark:prose-invert max-sm:prose-sm prose-headings:font-semibold prose-h1:text-lg prose-h2:text-base prose-h3:text-base prose-pre:bg-gray-800 prose-img:my-0 prose-img:cursor-pointer prose-img:rounded-lg dark:prose-pre:bg-gray-900"
+										class="prose prose-lg max-w-none dark:prose-invert max-sm:prose-sm prose-headings:font-semibold prose-h1:text-lg prose-h2:text-base prose-h3:text-base prose-pre:bg-gray-800 prose-img:my-0 prose-img:cursor-pointer prose-img:rounded-lg dark:prose-pre:bg-gray-900"
 									>
 										<MarkdownRenderer content={part} loading={isLast && loading} />
 									</div>
@@ -312,7 +312,7 @@
 							{/each}
 						{:else}
 							<div
-								class="prose max-w-none dark:prose-invert max-sm:prose-sm prose-headings:font-semibold prose-h1:text-lg prose-h2:text-base prose-h3:text-base prose-pre:bg-gray-800 prose-img:my-0 prose-img:cursor-pointer prose-img:rounded-lg dark:prose-pre:bg-gray-900"
+								class="prose prose-lg max-w-none dark:prose-invert max-sm:prose-sm prose-headings:font-semibold prose-h1:text-lg prose-h2:text-base prose-h3:text-base prose-pre:bg-gray-800 prose-img:my-0 prose-img:cursor-pointer prose-img:rounded-lg dark:prose-pre:bg-gray-900"
 							>
 								<MarkdownRenderer content={block.content} loading={isLast && loading} />
 							</div>
@@ -411,14 +411,14 @@
 	<div
 		class="group relative {alternatives.length > 1 && editMsdgId === null
 			? 'mb-7'
-			: ''} w-full items-start justify-start gap-4 max-sm:text-sm"
+			: ''} flex w-full items-start justify-end gap-4 max-sm:text-sm"
 		data-message-id={message.id}
 		data-message-type="user"
 		role="presentation"
 		onclick={() => (isTapped = !isTapped)}
 		onkeydown={() => (isTapped = !isTapped)}
 	>
-		<div class="flex w-full flex-col gap-2">
+		<div class="flex w-fit max-w-[85%] flex-col items-end gap-2">
 			{#if message.files?.length}
 				<div class="flex w-fit gap-4 px-5">
 					{#each message.files as file}
@@ -427,10 +427,10 @@
 				</div>
 			{/if}
 
-			<div class="flex w-full flex-row flex-nowrap">
+			<div class="flex w-fit flex-row flex-nowrap">
 				{#if !editMode}
 					<p
-						class="disabled w-full appearance-none whitespace-break-spaces text-wrap break-words bg-inherit px-5 py-3.5 text-gray-500 dark:text-gray-400"
+						class="disabled w-fit appearance-none whitespace-break-spaces text-wrap break-words rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-3.5 text-lg text-white dark:from-indigo-600 dark:to-blue-600"
 					>
 						{message.content.trim()}
 					</p>
@@ -477,7 +477,7 @@
 					</form>
 				{/if}
 			</div>
-			<div class="absolute -bottom-4 ml-3.5 flex w-full gap-1.5">
+			<div class="absolute -bottom-4 flex w-full justify-end gap-1.5 pr-3.5">
 				{#if alternatives.length > 1 && editMsdgId === null}
 					<Alternatives
 						{message}

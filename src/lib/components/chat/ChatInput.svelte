@@ -215,33 +215,9 @@
 	);
 </script>
 
-<div class="flex min-h-full flex-1 flex-col" onpaste={onPaste}>
-	<textarea
-		rows="1"
-		tabindex="0"
-		inputmode="text"
-		class="scrollbar-custom max-h-[4lh] w-full resize-none overflow-y-auto overflow-x-hidden border-0 bg-transparent px-2.5 py-2.5 outline-none focus:ring-0 focus-visible:ring-0 sm:px-3 md:max-h-[8lh]"
-		class:text-gray-400={disabled}
-		bind:value
-		bind:this={textareaElement}
-		onkeydown={handleKeydown}
-		oncompositionstart={() => (isCompositionOn = true)}
-		oncompositionend={() => (isCompositionOn = false)}
-		{placeholder}
-		{disabled}
-		onfocus={handleFocus}
-		onblur={handleBlur}
-		onbeforeinput={requireAuthUser}
-	></textarea>
-
-	{#if !showNoTools}
-		<div
-			class={[
-				"scrollbar-custom -ml-0.5 flex max-w-[calc(100%-40px)] flex-wrap items-center justify-start gap-2.5 px-3 pb-2.5 pt-1.5 text-gray-500 dark:text-gray-400 max-md:flex-nowrap max-md:overflow-x-auto sm:gap-2",
-			]}
-		>
-			{#if showFileUpload}
-				<div class="flex items-center">
+<div class="flex min-h-full flex-1 flex-row items-center" onpaste={onPaste}>
+	{#if showFileUpload}
+		<div class="flex flex-none items-center px-2">
 					<input
 						bind:this={fileInputEl}
 						disabled={loading}
@@ -445,10 +421,25 @@
 							</button>
 						</div>
 					{/if}
-				</div>
-			{/if}
 		</div>
 	{/if}
+	<textarea
+		rows="1"
+		tabindex="0"
+		inputmode="text"
+		class="scrollbar-custom max-h-[6lh] w-full resize-none overflow-y-auto overflow-x-hidden border-0 bg-transparent px-2.5 py-4 outline-none focus:ring-0 focus-visible:ring-0 sm:px-3 md:max-h-[12lh]"
+		class:text-gray-400={disabled}
+		bind:value
+		bind:this={textareaElement}
+		onkeydown={handleKeydown}
+		oncompositionstart={() => (isCompositionOn = true)}
+		oncompositionend={() => (isCompositionOn = false)}
+		{placeholder}
+		{disabled}
+		onfocus={handleFocus}
+		onblur={handleBlur}
+		onbeforeinput={requireAuthUser}
+	></textarea>
 	{@render children?.()}
 
 	<UrlFetchModal
@@ -468,6 +459,6 @@
 		font-family: inherit;
 		box-sizing: border-box;
 		line-height: 1.5;
-		font-size: 16px;
+		font-size: 18px;
 	}
 </style>

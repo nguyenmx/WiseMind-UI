@@ -611,7 +611,7 @@
 					handleSubmit();
 				}}
 				class={{
-					"relative flex w-full max-w-4xl flex-1 items-center rounded-xl border bg-gray-100 dark:border-gray-700 dark:bg-gray-800": true,
+					"flex w-full max-w-4xl flex-1 items-center rounded-xl border bg-gray-100 dark:border-gray-700 dark:bg-gray-800": true,
 					"opacity-30": isReadOnly,
 					"max-sm:mb-4": focused && isVirtualKeyboard(),
 				}}
@@ -631,7 +631,7 @@
 					<FileDropzone bind:files bind:onDrag mimeTypes={activeMimeTypes} />
 				{:else}
 					<div
-						class="flex w-full flex-1 rounded-xl border-none bg-transparent"
+						class="flex w-full flex-1 items-center rounded-xl border-none bg-transparent"
 						class:paste-glow={pastedLongContent}
 					>
 						{#if lastIsError}
@@ -656,13 +656,13 @@
 							<StopGeneratingBtn
 								onClick={() => onstop?.()}
 								showBorder={true}
-								classNames="absolute bottom-2 right-2 size-8 sm:size-7 self-end rounded-full border bg-white text-black shadow transition-none dark:border-transparent dark:bg-gray-600 dark:text-white"
+								classNames="mr-2 flex-none size-8 sm:size-7 rounded-full border bg-white text-black shadow transition-none dark:border-transparent dark:bg-gray-600 dark:text-white"
 							/>
 						{:else}
 							{#if transcriptionEnabled}
 								<button
 									type="button"
-									class="btn absolute bottom-2 right-10 mr-1.5 size-8 self-end rounded-full border bg-white/50 text-gray-500 transition-none hover:bg-gray-50 hover:text-gray-700 dark:border-transparent dark:bg-gray-600/50 dark:text-gray-300 dark:hover:bg-gray-500 dark:hover:text-white sm:right-9 sm:size-7"
+									class="btn mr-1.5 flex-none size-8 rounded-full border bg-white/50 text-gray-500 transition-none hover:bg-gray-50 hover:text-gray-700 dark:border-transparent dark:bg-gray-600/50 dark:text-gray-300 dark:hover:bg-gray-500 dark:hover:text-white sm:size-7"
 									disabled={isReadOnly}
 									onclick={() => {
 										isRecording = true;
@@ -673,7 +673,7 @@
 								</button>
 							{/if}
 							<button
-								class="btn absolute bottom-2 right-2 size-8 self-end rounded-full border bg-white text-black shadow transition-none enabled:hover:bg-white enabled:hover:shadow-inner dark:border-transparent dark:bg-gray-600 dark:text-white dark:hover:enabled:bg-black sm:size-7 {!draft ||
+								class="btn mr-2 flex-none size-8 rounded-full border bg-white text-black shadow transition-none enabled:hover:bg-white enabled:hover:shadow-inner dark:border-transparent dark:bg-gray-600 dark:text-white dark:hover:enabled:bg-black sm:size-7 {!draft ||
 								isReadOnly
 									? ''
 									: '!bg-black !text-white dark:!bg-white dark:!text-black'}"

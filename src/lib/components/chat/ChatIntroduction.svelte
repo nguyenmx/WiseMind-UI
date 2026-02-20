@@ -20,8 +20,8 @@
 </script>
 
 <div class="my-auto grid items-center justify-center gap-8 text-center">
-	<div class="flex -translate-y-16 select-none justify-center md:-translate-y-12">
-		<Logo classNames="size-24 md:size-72" />
+	<div class="ghost-logo flex -translate-y-16 select-none justify-center md:-translate-y-12">
+		<Logo classNames="size-24 md:size-96" />
 	</div>
 	<!-- <div class="lg:col-span-1">
 		<div>
@@ -81,3 +81,13 @@
 	</div>
 	<div class="h-40 sm:h-24"></div> -->
 </div>
+
+<style>
+	@keyframes ghost-pulse {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0; }
+	}
+	.ghost-logo {
+		animation: ghost-pulse 5s ease-in-out infinite;
+	}
+</style>
