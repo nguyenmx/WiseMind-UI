@@ -66,6 +66,7 @@
 		onretry?: (payload: { id: Message["id"]; content?: string }) => void;
 		onshowAlternateMsg?: (payload: { id: Message["id"] }) => void;
 		draft?: string;
+		thinkingMode?: "flash" | "thinking";
 	}
 
 	let {
@@ -79,6 +80,7 @@
 		preprompt = undefined,
 		files = $bindable([]),
 		draft = $bindable(""),
+		thinkingMode = $bindable("flash"),
 		onmessage,
 		onstop,
 		onretry,
@@ -90,6 +92,7 @@
 	let shareModalOpen = $state(false);
 	let editMsdgId: Message["id"] | null = $state(null);
 	let pastedLongContent = $state(false);
+
 
 	// Voice recording state
 	let isRecording = $state(false);
@@ -672,6 +675,26 @@
 									<IconMic class="size-4" />
 								</button>
 							{/if}
+							<!-- WiseMind: Flash / Thinking mode toggle -->
+							<button
+								type="button"
+								title={thinkingMode === "flash" ? "Flash mode (fast) — click to switch to Thinking mode" : "Thinking mode (accurate) — click to switch to Flash mode"}
+								class="btn mr-1.5 flex-none h-7 rounded-full border px-2 text-xs font-medium transition-all
+									{thinkingMode === 'thinking'
+										? 'border-purple-400 bg-purple-100 text-purple-700 hover:bg-purple-200 dark:border-purple-500 dark:bg-purple-900/40 dark:text-purple-300 dark:hover:bg-purple-800/50'
+										: 'border-gray-300 bg-white/80 text-gray-500 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-400 dark:hover:bg-gray-600/50'}"
+								disabled={isReadOnly}
+								onclick={() => {
+									thinkingMode = thinkingMode === "flash" ? "thinking" : "flash";
+								}}
+								aria-label="Toggle thinking mode"
+							>
+								{#if thinkingMode === "thinking"}
+									<span>🧠 Thinking</span>
+								{:else}
+									<span>⚡ Flash</span>
+								{/if}
+							</button>
 							<button
 								class="btn mr-2 flex-none size-8 rounded-full border bg-white text-black shadow transition-none enabled:hover:bg-white enabled:hover:shadow-inner dark:border-transparent dark:bg-gray-600 dark:text-white dark:hover:enabled:bg-black sm:size-7 {!draft ||
 								isReadOnly

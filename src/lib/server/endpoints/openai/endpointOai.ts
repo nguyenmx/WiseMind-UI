@@ -221,12 +221,17 @@ export async function endpointOai(
 				presence_penalty: parameters?.presence_penalty,
 			};
 
+			// WiseMind: inject thinking_mode from locals into extra body
+			const wisemindExtras = (locals as unknown as Record<string, unknown>)?.wisemindThinkingMode
+				? { thinking_mode: (locals as unknown as Record<string, unknown>).wisemindThinkingMode }
+				: {};
+
 			// Handle both streaming and non-streaming responses with appropriate processors
 			if (streamingSupported) {
 				const openChatAICompletion = await openai.chat.completions.create(
 					body as ChatCompletionCreateParamsStreaming,
 					{
-						body: { ...body, ...extraBody },
+						body: { ...body, ...extraBody, ...wisemindExtras },
 						headers: {
 							"ChatUI-Conversation-ID": conversationId?.toString() ?? "",
 							"X-use-cache": "false",
@@ -244,7 +249,7 @@ export async function endpointOai(
 				const openChatAICompletion = await openai.chat.completions.create(
 					body as ChatCompletionCreateParamsNonStreaming,
 					{
-						body: { ...body, ...extraBody },
+						body: { ...body, ...extraBody, ...wisemindExtras },
 						headers: {
 							"ChatUI-Conversation-ID": conversationId?.toString() ?? "",
 							"X-use-cache": "false",

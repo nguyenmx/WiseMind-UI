@@ -226,6 +226,7 @@
 						url: s.url,
 						headers: s.headers,
 					})),
+					thinkingMode,
 				},
 				messageUpdatesAbortController.signal
 			).catch((err) => {
@@ -430,6 +431,9 @@
 		}
 	});
 
+	// WiseMind: shared thinking mode state (controlled by ChatWindow toggle)
+	let thinkingMode = $state<"flash" | "thinking">("flash");
+
 	async function onMessage(content: string) {
 		await writeMessage({ prompt: content });
 	}
@@ -529,6 +533,7 @@
 	shared={data.shared}
 	preprompt={data.preprompt}
 	bind:files
+	bind:thinkingMode
 	onmessage={onMessage}
 	onretry={onRetry}
 	onshowAlternateMsg={onShowAlternateMsg}

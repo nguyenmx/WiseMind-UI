@@ -129,6 +129,7 @@ export async function POST({ request, locals, params, getClientAddress }) {
 		is_retry: isRetry,
 		selectedMcpServerNames,
 		selectedMcpServers,
+		thinking_mode: thinkingMode,
 	} = z
 		.object({
 			id: z.string().uuid().refine(isMessageId).optional(), // parent message id to append to for a normal message, or the message id for a retry/continue
@@ -163,6 +164,8 @@ export async function POST({ request, locals, params, getClientAddress }) {
 					})
 				)
 			),
+			// WiseMind: "flash" (default) or "thinking"
+			thinking_mode: z.enum(["flash", "thinking"]).default("flash"),
 		})
 		.parse(JSON.parse(json));
 
@@ -182,6 +185,9 @@ export async function POST({ request, locals, params, getClientAddress }) {
 	} catch {
 		// ignore attachment errors, pipeline will just use env servers
 	}
+
+	// Attach WiseMind thinking mode so the endpoint can forward it to the backend
+	(locals as unknown as Record<string, unknown>).wisemindThinkingMode = thinkingMode;
 
 	const inputFiles = await Promise.all(
 		form
