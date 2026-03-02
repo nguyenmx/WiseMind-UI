@@ -4,6 +4,26 @@
 
 	import { usePublicConfig } from "$lib/utils/PublicConfig.svelte";
 	const publicConfig = usePublicConfig();
+
+	// WiseMind: feedback thumbs
+	let feedbackRating = $state<1 | -1 | null>(null);
+	async function submitFeedback(rating: 1 | -1) {
+		if (feedbackRating !== null) return; // already voted
+		feedbackRating = rating;
+		try {
+			await fetch("/api/wisemind-feedback", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					message_id: message.id,
+					conversation_id: message.conversationId ?? "",
+					rating,
+				}),
+			});
+		} catch (e) {
+			console.error("Feedback error:", e);
+		}
+	}
 	import CopyToClipBoardBtn from "../CopyToClipBoardBtn.svelte";
 	import IconLoading from "../icons/IconLoading.svelte";
 	import CarbonRotate360 from "~icons/carbon/rotate-360";
@@ -390,6 +410,39 @@
 						}}
 					>
 						<CarbonRotate360 />
+					</button>
+					<!-- WiseMind feedback buttons -->
+					<button
+						class="btn rounded-sm p-1 text-xs focus:ring-0 transition-colors
+							{feedbackRating === 1
+								? 'text-green-500 dark:text-green-400'
+								: 'text-gray-400 hover:text-green-500 dark:text-gray-400 dark:hover:text-green-400'}
+							{feedbackRating === -1 ? 'opacity-30 cursor-default' : ''}"
+						title="Helpful"
+						type="button"
+						disabled={feedbackRating !== null}
+						onclick={() => submitFeedback(1)}
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill={feedbackRating === 1 ? "currentColor" : "none"} stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+							<path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+						</svg>
+					</button>
+					<button
+						class="btn rounded-sm p-1 text-xs focus:ring-0 transition-colors
+							{feedbackRating === -1
+								? 'text-red-500 dark:text-red-400'
+								: 'text-gray-400 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400'}
+							{feedbackRating === 1 ? 'opacity-30 cursor-default' : ''}"
+						title="Not helpful"
+						type="button"
+						disabled={feedbackRating !== null}
+						onclick={() => submitFeedback(-1)}
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill={feedbackRating === -1 ? "currentColor" : "none"} stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+							<path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+						</svg>
 					</button>
 					{#if alternatives.length > 1 && editMsdgId === null}
 						<Alternatives
