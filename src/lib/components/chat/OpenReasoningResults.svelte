@@ -10,30 +10,6 @@
 
 	let { content, loading = false, hasNext = false }: Props = $props();
 	let isOpen = $state(false);
-	let wasLoading = $state(false);
-	let initialized = $state(false);
-
-	// Track loading transitions to auto-expand/collapse
-	$effect(() => {
-		// Auto-expand on first render if already loading
-		if (!initialized) {
-			initialized = true;
-			if (loading) {
-				isOpen = true;
-				wasLoading = true;
-				return;
-			}
-		}
-
-		if (loading && !wasLoading) {
-			// Loading started - auto-expand
-			isOpen = true;
-		} else if (!loading && wasLoading) {
-			// Loading finished - auto-collapse
-			isOpen = false;
-		}
-		wasLoading = loading;
-	});
 </script>
 
 {#snippet icon()}
@@ -52,30 +28,39 @@
 	iconBg="bg-gray-100 dark:bg-gray-700"
 	iconRing="ring-gray-200 dark:ring-gray-600"
 >
-	<!-- Collapsed view (clickable to expand) -->
 	<button
 		type="button"
-		class="group/text w-full cursor-pointer text-left"
+		class="group/text flex w-full cursor-pointer items-center gap-2 text-left"
 		onclick={() => (isOpen = !isOpen)}
 	>
-		{#if isOpen}
-			<!-- Expanded: show full content -->
-			<div
-				class="prose prose-sm max-w-none text-sm leading-relaxed text-gray-500 dark:prose-invert dark:text-gray-400"
-			>
-				<MarkdownRenderer {content} {loading} />
-			</div>
-		{:else}
-			<!-- Collapsed: 2-line preview (plain text, strip markdown) -->
-			<div
-				class="line-clamp-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400"
-				class:animate-pulse={loading}
-			>
+		<!-- Summary line with toggle arrow -->
+		<span class="flex-1 text-sm leading-relaxed text-gray-500 dark:text-gray-400" class:animate-pulse={loading && !isOpen}>
+			{#if loading && !isOpen}
+				Thinking...
+			{:else if isOpen}
+				<span class="font-medium text-gray-600 dark:text-gray-300">Thinking process</span>
+			{:else}
 				{content
 					.replace(/[#*_`~[\]]/g, "")
 					.replace(/\n+/g, " ")
-					.trim()}
-			</div>
-		{/if}
+					.trim()
+					.slice(0, 120)}{content.length > 120 ? "…" : ""}
+			{/if}
+		</span>
+
+		<!-- Arrow indicator -->
+		<span class="flex-none text-gray-400 transition-transform duration-200 dark:text-gray-500" class:rotate-180={isOpen}>
+			<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+				<polyline points="6 9 12 15 18 9" />
+			</svg>
+		</span>
 	</button>
+
+	{#if isOpen}
+		<div class="mt-2 border-t border-gray-200 pt-2 dark:border-gray-600">
+			<div class="prose prose-sm max-w-none text-sm leading-relaxed text-gray-500 dark:prose-invert dark:text-gray-400">
+				<MarkdownRenderer {content} {loading} />
+			</div>
+		</div>
+	{/if}
 </BlockWrapper>
