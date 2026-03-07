@@ -33,7 +33,9 @@
 	import UploadedFile from "./UploadedFile.svelte";
 
 	import MarkdownRenderer from "./MarkdownRenderer.svelte";
+	import SourcePanel from "./SourcePanel.svelte";
 	import OpenReasoningResults from "./OpenReasoningResults.svelte";
+	import type { WiseMindSource } from "$lib/utils/marked";
 	import Alternatives from "./Alternatives.svelte";
 	import MessageAvatar from "./MessageAvatar.svelte";
 	import { PROVIDERS_HUB_ORGS } from "@huggingface/inference";
@@ -144,15 +146,44 @@
 	let editContentEl: HTMLTextAreaElement | undefined = $state();
 	let editFormEl: HTMLFormElement | undefined = $state();
 
+	// Parse WiseMind RAG sources embedded as <!--wisemind-sources:BASE64--> in message content
+	let wisemindSources: WiseMindSource[] = $derived.by(() => {
+		const match = message.content.match(/<!--wisemind-sources:([A-Za-z0-9+/=]+)-->/);
+		if (!match) return [];
+		try {
+			return JSON.parse(atob(match[1])) as WiseMindSource[];
+		} catch {
+			return [];
+		}
+	});
+
+	// Strip the hidden comment before rendering
+	let renderableContent = $derived(
+		message.content.replace(/<!--wisemind-sources:[A-Za-z0-9+/=]+-->/g, "")
+	);
+
+	// Source panel state
+	let activePanelSource: WiseMindSource | null = $state(null);
+
+	function handleCiteClick(e: MouseEvent) {
+		const btn = (e.target as HTMLElement).closest<HTMLButtonElement>(".wisemind-cite-btn");
+		if (!btn) return;
+		e.stopPropagation();
+		const ref = Number(btn.dataset.wisemindRef);
+		if (!ref) return;
+		const src = wisemindSources.find((s) => s.ref_index === ref) ?? null;
+		activePanelSource = src;
+	}
+
 	// Zero-config reasoning autodetection: detect <think> blocks in content
 	const THINK_BLOCK_REGEX = /(<think>[\s\S]*?(?:<\/think>|$))/gi;
 	// Non-global version for .test() calls to avoid lastIndex side effects
 	const THINK_BLOCK_TEST_REGEX = /(<think>[\s\S]*?(?:<\/think>|$))/i;
-	let hasClientThink = $derived(message.content.split(THINK_BLOCK_REGEX).length > 1);
+	let hasClientThink = $derived(renderableContent.split(THINK_BLOCK_REGEX).length > 1);
 
 	// Strip think blocks for clipboard copy (always, regardless of detection)
 	let contentWithoutThink = $derived.by(() =>
-		message.content.replace(THINK_BLOCK_REGEX, "").trim()
+		renderableContent.replace(THINK_BLOCK_REGEX, "").trim()
 	);
 
 	type Block =
@@ -170,7 +201,7 @@
 
 		// Fast path: no tool updates at all
 		if (!hasTools && updates.length === 0) {
-			if (message.content) return [{ type: "text" as const, content: message.content }];
+			if (renderableContent) return [{ type: "text" as const, content: renderableContent }];
 			return [];
 		}
 
@@ -181,7 +212,7 @@
 				const len = token !== null ? token.length : (update.len ?? 0);
 				const chunk =
 					token ??
-					(message.content ? message.content.slice(contentCursor, contentCursor + len) : "");
+					(renderableContent ? renderableContent.slice(contentCursor, contentCursor + len) : "");
 				contentCursor += len;
 				if (!chunk) continue;
 				const last = res.at(-1);
@@ -225,16 +256,16 @@
 
 		// If content remains unmatched (e.g., persisted stream markers), append the remainder
 		// Skip when a FinalAnswer already provided the authoritative text.
-		if (!sawFinalAnswer && message.content && contentCursor < message.content.length) {
-			const remaining = message.content.slice(contentCursor);
+		if (!sawFinalAnswer && renderableContent && contentCursor < renderableContent.length) {
+			const remaining = renderableContent.slice(contentCursor);
 			if (remaining.length > 0) {
 				const last = res.at(-1);
 				if (last?.type === "text") last.content += remaining;
 				else res.push({ type: "text" as const, content: remaining });
 			}
-		} else if (!res.some((b) => b.type === "text") && message.content) {
+		} else if (!res.some((b) => b.type === "text") && renderableContent) {
 			// Fallback: no text produced at all
-			res.push({ type: "text" as const, content: message.content });
+			res.push({ type: "text" as const, content: renderableContent });
 		}
 
 		return res;
@@ -289,7 +320,11 @@
 			{/if}
 
 			<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-			<div bind:this={contentEl} oncopy={handleCopy} onclick={handleContentClick}>
+			<div
+				bind:this={contentEl}
+				oncopy={handleCopy}
+				onclick={(e) => { handleContentClick(e); handleCiteClick(e); }}
+			>
 				{#if isLast && loading && blocks.length === 0}
 					<IconLoading classNames="loading inline ml-2 first:ml-0" />
 				{/if}
@@ -326,7 +361,7 @@
 									<div
 										class="prose prose-lg max-w-none dark:prose-invert max-sm:prose-sm prose-headings:font-semibold prose-h1:text-lg prose-h2:text-base prose-h3:text-base prose-pre:bg-gray-800 prose-img:my-0 prose-img:cursor-pointer prose-img:rounded-lg dark:prose-pre:bg-gray-900"
 									>
-										<MarkdownRenderer content={part} loading={isLast && loading} />
+										<MarkdownRenderer content={part} loading={isLast && loading} {wisemindSources} />
 									</div>
 								{/if}
 							{/each}
@@ -334,7 +369,7 @@
 							<div
 								class="prose prose-lg max-w-none dark:prose-invert max-sm:prose-sm prose-headings:font-semibold prose-h1:text-lg prose-h2:text-base prose-h3:text-base prose-pre:bg-gray-800 prose-img:my-0 prose-img:cursor-pointer prose-img:rounded-lg dark:prose-pre:bg-gray-900"
 							>
-								<MarkdownRenderer content={block.content} loading={isLast && loading} />
+								<MarkdownRenderer content={block.content} loading={isLast && loading} {wisemindSources} />
 							</div>
 						{/if}
 					{/if}
@@ -459,6 +494,7 @@
 	{#if lightboxSrc}
 		<ImageLightbox src={lightboxSrc} onclose={() => (lightboxSrc = null)} />
 	{/if}
+	<SourcePanel source={activePanelSource} onclose={() => (activePanelSource = null)} />
 {/if}
 {#if message.from === "user"}
 	<div

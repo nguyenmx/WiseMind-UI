@@ -8,6 +8,18 @@ type SimpleSource = {
 	title?: string;
 	link: string;
 };
+
+// WiseMind RAG source — used for clickable source panel
+export type WiseMindSource = {
+	ref_index: number;
+	chunk_id: string;
+	section: string;
+	page: number;
+	source_type: string; // "base" | "middle"
+	doc_title: string;
+	source_url: string;
+	content: string;
+};
 import hljs from "highlight.js/lib/core";
 import type { LanguageFn } from "highlight.js";
 import javascript from "highlight.js/lib/languages/javascript";
@@ -225,14 +237,44 @@ function escapeHTML(content: string) {
 	);
 }
 
-function addInlineCitations(md: string, webSearchSources: SimpleSource[] = []): string {
+function addInlineCitations(
+	md: string,
+	webSearchSources: SimpleSource[] = [],
+	wisemindSources: WiseMindSource[] = []
+): string {
 	const linkStyle =
 		"color: rgb(59, 130, 246); text-decoration: none; hover:text-decoration: underline;";
+
 	return md.replace(/\[(\d+)\]/g, (match: string) => {
 		const indices: number[] = (match.match(/\d+/g) || []).map(Number);
-		const links: string = indices
+		const rendered: string = indices
 			.map((index: number) => {
-				if (index === 0) return false;
+				if (index === 0) return "";
+
+				// WiseMind RAG source — render as a clickable panel button
+				const wm = wisemindSources.find((s) => s.ref_index === index);
+				if (wm) {
+					const isGuideline = wm.source_type === "middle";
+					const icon = isGuideline ? "📋" : "📖";
+					const label = isGuideline
+						? ((wm.doc_title || "Guideline").split(":").pop()?.trim().slice(0, 30) ?? "Guideline")
+						: `p.${wm.page}`;
+					return (
+						`<button ` +
+						`class="wisemind-cite-btn" ` +
+						`data-wisemind-ref="${index}" ` +
+						`title="${escapeHTML(wm.section || wm.doc_title)}" ` +
+						`style="display:inline-flex;align-items:center;gap:2px;padding:0 4px;` +
+						`border-radius:4px;font-size:0.7em;font-weight:600;cursor:pointer;` +
+						`background:rgb(239,246,255);border:1px solid rgb(147,197,253);` +
+						`color:rgb(37,99,235);vertical-align:super;line-height:1.2;` +
+						`transition:background 0.15s;"` +
+						`>${icon}${index} <span style="font-weight:400;opacity:0.8">${escapeHTML(label)}</span>` +
+						`</button>`
+					);
+				}
+
+				// Web search source — existing link behaviour
 				const source = webSearchSources[index - 1];
 				if (source) {
 					return `<a href="${escapeHTML(source.link)}" target="_blank" rel="noreferrer" style="${linkStyle}">${index}</a>`;
@@ -240,8 +282,8 @@ function addInlineCitations(md: string, webSearchSources: SimpleSource[] = []): 
 				return "";
 			})
 			.filter(Boolean)
-			.join(", ");
-		return links ? ` <sup>${links}</sup>` : match;
+			.join("");
+		return rendered ? ` <sup>${rendered}</sup>` : match;
 	});
 }
 
@@ -342,10 +384,13 @@ function sanitizeHtmlForMultimedia(html: string): string {
 	return sanitized;
 }
 
-function createMarkedInstance(sources: SimpleSource[]): Marked {
+function createMarkedInstance(
+	sources: SimpleSource[],
+	wisemindSources: WiseMindSource[] = []
+): Marked {
 	return new Marked({
 		hooks: {
-			postprocess: (html) => addInlineCitations(html, sources),
+			postprocess: (html) => addInlineCitations(html, sources, wisemindSources),
 		},
 		extensions: [katexBlockExtension, katexInlineExtension],
 		renderer: {
@@ -410,11 +455,15 @@ function cacheKey(index: number, blockContent: string, sources: SimpleSource[]) 
 	return `${index}-${hashString(blockContent)}|${sourceKey}`;
 }
 
-export async function processTokens(content: string, sources: SimpleSource[]): Promise<Token[]> {
+export async function processTokens(
+	content: string,
+	sources: SimpleSource[],
+	wisemindSources: WiseMindSource[] = []
+): Promise<Token[]> {
 	// Apply incomplete markdown preprocessing for smooth streaming
 	const processedContent = parseIncompleteMarkdown(content);
 
-	const marked = createMarkedInstance(sources);
+	const marked = createMarkedInstance(sources, wisemindSources);
 	const tokens = marked.lexer(processedContent);
 
 	const processedTokens = await Promise.all(
@@ -439,11 +488,15 @@ export async function processTokens(content: string, sources: SimpleSource[]): P
 	return processedTokens;
 }
 
-export function processTokensSync(content: string, sources: SimpleSource[]): Token[] {
+export function processTokensSync(
+	content: string,
+	sources: SimpleSource[],
+	wisemindSources: WiseMindSource[] = []
+): Token[] {
 	// Apply incomplete markdown preprocessing for smooth streaming
 	const processedContent = parseIncompleteMarkdown(content);
 
-	const marked = createMarkedInstance(sources);
+	const marked = createMarkedInstance(sources, wisemindSources);
 	const tokens = marked.lexer(processedContent);
 	return tokens.map((token) => {
 		if (token.type === "code") {
@@ -486,23 +539,25 @@ function hashString(str: string): string {
  */
 export async function processBlocks(
 	content: string,
-	sources: SimpleSource[] = []
+	sources: SimpleSource[] = [],
+	wisemindSources: WiseMindSource[] = []
 ): Promise<BlockToken[]> {
 	const blocks = parseMarkdownIntoBlocks(content);
+	const hasWm = wisemindSources.length > 0;
 
 	return await Promise.all(
 		blocks.map(async (blockContent, index) => {
 			const key = cacheKey(index, blockContent, sources);
 			const cached = blockCache.get(key);
-			if (cached) return cached;
+			if (cached && !hasWm) return cached;
 
-			const tokens = await processTokens(blockContent, sources);
+			const tokens = await processTokens(blockContent, sources, wisemindSources);
 			const block: BlockToken = {
 				id: `${index}-${hashString(blockContent)}`,
 				content: blockContent,
 				tokens,
 			};
-			blockCache.set(key, block);
+			if (!hasWm) blockCache.set(key, block);
 			return block;
 		})
 	);
@@ -511,21 +566,26 @@ export async function processBlocks(
 /**
  * Synchronous version of processBlocks for SSR
  */
-export function processBlocksSync(content: string, sources: SimpleSource[] = []): BlockToken[] {
+export function processBlocksSync(
+	content: string,
+	sources: SimpleSource[] = [],
+	wisemindSources: WiseMindSource[] = []
+): BlockToken[] {
 	const blocks = parseMarkdownIntoBlocks(content);
+	const hasWm = wisemindSources.length > 0;
 
 	return blocks.map((blockContent, index) => {
 		const key = cacheKey(index, blockContent, sources);
 		const cached = blockCache.get(key);
 		if (cached) return cached;
 
-		const tokens = processTokensSync(blockContent, sources);
+		const tokens = processTokensSync(blockContent, sources, wisemindSources);
 		const block: BlockToken = {
 			id: `${index}-${hashString(blockContent)}`,
 			content: blockContent,
 			tokens,
 		};
-		blockCache.set(key, block);
+		if (!hasWm) blockCache.set(key, block);
 		return block;
 	});
 }
