@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { processBlocks, processBlocksSync, type BlockToken } from "$lib/utils/marked";
+	import {
+		processBlocks,
+		processBlocksSync,
+		type BlockToken,
+		type WiseMindSource
+	} from "$lib/utils/marked";
 	import MarkdownWorker from "$lib/workers/markdownWorker?worker";
 	import MarkdownBlock from "./MarkdownBlock.svelte";
 	import { browser } from "$app/environment";
@@ -10,12 +15,18 @@
 	interface Props {
 		content: string;
 		sources?: { title?: string; link: string }[];
+		wisemindSources?: WiseMindSource[];
 		loading?: boolean;
 	}
 
-	let { content, sources = [], loading = false }: Props = $props();
+	let { content, sources = [], wisemindSources = [], loading = false }: Props = $props();
 
-	let blocks: BlockToken[] = $state(processBlocksSync(content, sources));
+	// Strip the hidden wisemind-sources JSON comment before rendering (handles all code paths,
+	// including the streaming token path where ChatMessage may not have stripped it yet)
+	const WISEMIND_COMMENT_RE = /<!--wisemind-sources:[A-Za-z0-9+/=\s]*?-->/gs;
+	let cleanContent = $derived(content.replace(WISEMIND_COMMENT_RE, ""));
+
+	let blocks: BlockToken[] = $state(processBlocksSync(cleanContent, sources, wisemindSources));
 	let worker: Worker | null = null;
 	let latestRequestId = 0;
 
@@ -27,22 +38,22 @@
 
 	$effect(() => {
 		if (!browser) {
-			blocks = processBlocksSync(content, sources);
+			blocks = processBlocksSync(cleanContent, sources, wisemindSources);
 			return;
 		}
 
 		const requestId = ++latestRequestId;
 
-		if (worker) {
+		// Worker path: only use for non-wisemind content (worker can't transfer WiseMindSource)
+		if (worker && !wisemindSources.length) {
 			updateDebouncer.startRender();
-			worker.postMessage({ type: "process", content, sources, requestId });
+			worker.postMessage({ type: "process", content: cleanContent, sources, requestId });
 			return;
 		}
 
 		(async () => {
 			updateDebouncer.startRender();
-			const processed = await processBlocks(content, sources);
-			// Only apply if this is still the latest request
+			const processed = await processBlocks(cleanContent, sources, wisemindSources);
 			handleBlocks(processed, requestId);
 		})();
 	});
