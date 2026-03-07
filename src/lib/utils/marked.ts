@@ -258,7 +258,7 @@ function addInlineCitations(
 					const icon = isGuideline ? "📋" : "📖";
 					const label = isGuideline
 						? ((wm.doc_title || "Guideline").split(":").pop()?.trim().slice(0, 30) ?? "Guideline")
-						: `p.${wm.page}`;
+						: `p.${wm.page + 12}`;
 					return (
 						`<button ` +
 						`class="wisemind-cite-btn" ` +
