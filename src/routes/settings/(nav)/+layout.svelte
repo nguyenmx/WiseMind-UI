@@ -14,6 +14,7 @@
 	import LucideImage from "~icons/lucide/image";
 	import LucideHammer from "~icons/lucide/hammer";
 	import IconGear from "~icons/bi/gear-fill";
+	import CarbonDebug from "~icons/carbon/debug";
 	import { PROVIDERS_HUB_ORGS } from "@huggingface/inference";
 	import { usePublicConfig } from "$lib/utils/PublicConfig.svelte";
 
@@ -268,6 +269,18 @@
 			>
 				<IconGear class="mr-0.5 text-xxs" />
 				Application Settings
+			</button>
+			<button
+				type="button"
+				onclick={() => goto(`${base}/settings/debug`)}
+				class="group mt-1 flex h-9 w-full flex-none items-center gap-1 rounded-lg px-3 text-[13px] text-gray-600 dark:text-gray-300 md:rounded-xl md:px-3 {page.url.pathname ===
+				`${base}/settings/debug`
+					? '!bg-gray-100 !text-gray-800 dark:!bg-gray-700 dark:!text-gray-200'
+					: 'bg-white dark:bg-gray-800'}"
+				aria-label="Debug info"
+			>
+				<CarbonDebug class="mr-0.5 size-4" />
+				Debug
 			</button>
 		</div>
 	{/if}
