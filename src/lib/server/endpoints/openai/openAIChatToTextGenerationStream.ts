@@ -16,6 +16,23 @@ export async function* openAIChatToTextGenerationStream(
 	let thinkOpen = false;
 
 	for await (const completion of completionStream) {
+		// Check for WiseMind progress step events (emitted before LLM tokens)
+		const maybeStep = completion as unknown as Record<string, unknown>;
+		if (maybeStep.object === "wisemind.step") {
+			yield {
+				token: { id: tokenId++, text: "", logprob: 0, special: true },
+				generated_text: null,
+				details: null,
+				wisemindStep: {
+					step: maybeStep.step as string,
+					text: maybeStep.text as string,
+				},
+			} as TextGenerationStreamOutput & {
+				wisemindStep: { step: string; text: string };
+			};
+			continue;
+		}
+
 		const retyped = completion as {
 			"x-router-metadata"?: { route: string; model: string; provider?: string };
 		};

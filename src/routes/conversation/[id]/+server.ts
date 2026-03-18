@@ -497,11 +497,13 @@ export async function POST({ request, locals, params, getClientAddress }) {
 				}
 
 				// Append updates for audit/replay (streams too, to preserve ordering)
+				// WisemindStep events are transient UI-only events — don't persist to DB
 				if (
 					!(
 						event.type === MessageUpdateType.Status &&
 						event.status === MessageUpdateStatus.KeepAlive
-					)
+					) &&
+					event.type !== MessageUpdateType.WisemindStep
 				) {
 					messageToWriteTo?.updates?.push(
 						event.type === MessageUpdateType.Stream ? { ...event } : event

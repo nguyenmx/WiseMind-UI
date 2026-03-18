@@ -3,6 +3,7 @@ import {
 	MessageReasoningUpdateType,
 	MessageUpdateType,
 	type MessageUpdate,
+	type MessageWisemindStepUpdate,
 } from "$lib/types/MessageUpdate";
 import { AbortedGenerations } from "../abortedGenerations";
 import type { TextGenerationContext } from "./types";
@@ -65,6 +66,19 @@ export async function* generate(
 	});
 
 	for await (const output of stream) {
+		// Check for WiseMind progress step events — forward directly to client
+		if ("wisemindStep" in output && output.wisemindStep) {
+			const stepOutput = output as typeof output & {
+				wisemindStep: { step: string; text: string };
+			};
+			yield {
+				type: MessageUpdateType.WisemindStep,
+				step: stepOutput.wisemindStep.step,
+				text: stepOutput.wisemindStep.text,
+			} satisfies MessageWisemindStepUpdate;
+			continue;
+		}
+
 		// Check if this output contains router metadata. Emit if either:
 		// 1) route+model are present (router models), or
 		// 2) provider-only is present (non-router models exposing x-inference-provider)

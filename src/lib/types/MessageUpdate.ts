@@ -9,7 +9,8 @@ export type MessageUpdate =
 	| MessageFileUpdate
 	| MessageFinalAnswerUpdate
 	| MessageReasoningUpdate
-	| MessageRouterMetadataUpdate;
+	| MessageRouterMetadataUpdate
+	| MessageWisemindStepUpdate;
 
 export enum MessageUpdateType {
 	Status = "status",
@@ -20,6 +21,7 @@ export enum MessageUpdateType {
 	FinalAnswer = "finalAnswer",
 	Reasoning = "reasoning",
 	RouterMetadata = "routerMetadata",
+	WisemindStep = "wisemindStep",
 }
 
 // Status
@@ -128,4 +130,10 @@ export interface MessageRouterMetadataUpdate {
 	route: string;
 	model: string;
 	provider?: InferenceProvider;
+}
+
+export interface MessageWisemindStepUpdate {
+	type: MessageUpdateType.WisemindStep;
+	step: string;
+	text: string;
 }

@@ -49,6 +49,7 @@
 		isMessageToolErrorUpdate,
 		isMessageToolResultUpdate,
 	} from "$lib/utils/messageUpdates";
+	import { MessageUpdateType } from "$lib/types/MessageUpdate";
 	import type { ToolFront } from "$lib/types/Tool";
 
 	interface Props {
@@ -203,6 +204,17 @@
 	const availableTools: ToolFront[] = $derived.by(
 		() => (page.data as { tools?: ToolFront[] } | undefined)?.tools ?? []
 	);
+	// Latest WiseMind step event from the streaming message
+	let streamingWisemindStep = $derived.by(() => {
+		const updates = streamingAssistantMessage?.updates ?? [];
+		if (!loading || !updates.length) return null;
+		for (let i = updates.length - 1; i >= 0; i -= 1) {
+			const u = updates[i];
+			if (u.type === MessageUpdateType.WisemindStep) return u;
+		}
+		return null;
+	});
+
 	let streamingToolCallName = $derived.by(() => {
 		const updates = streamingAssistantMessage?.updates ?? [];
 		if (!updates.length) return null;
@@ -718,7 +730,16 @@
 				}}
 			>
 				{#if models.find((m) => m.id === currentModel.id)}
-					{#if loading && streamingToolCallName}
+					{#if loading && streamingWisemindStep}
+						<span
+							class="inline-flex items-center gap-1.5 whitespace-nowrap text-xs"
+							style="color: rgb(59,130,246);"
+							in:fly={{ y: 4, duration: 150 }}
+						>
+							<span class="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400"></span>
+							{streamingWisemindStep.text}
+						</span>
+					{:else if loading && streamingToolCallName}
 						<span class="inline-flex items-center gap-1 whitespace-nowrap text-xs">
 							<LucideHammer class="size-3" />
 							Calling tool
