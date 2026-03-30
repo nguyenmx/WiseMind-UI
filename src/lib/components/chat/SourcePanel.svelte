@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { WiseMindSource } from "$lib/utils/marked";
+	import { savedSources } from "$lib/stores/savedSources";
 
 	interface LayoutBlock {
 		type: string;
@@ -116,6 +117,22 @@
 	let typeLabel = $derived(isGuideline ? "Clinical Guideline" : "Greenberg — Neurosurgery");
 	let icon = $derived(isGuideline ? "📋" : "📖");
 
+	// ── Save state ──
+	let isSaved = $derived.by(() => {
+		if (!source) return false;
+		const chunkId = source.chunk_id;
+		return $savedSources.some((s) => s.chunk_id === chunkId);
+	});
+
+	function toggleSave() {
+		if (!source) return;
+		if (isSaved) {
+			savedSources.remove(source.chunk_id);
+		} else {
+			savedSources.add(source);
+		}
+	}
+
 	// Layout data is fetched but overlays are not rendered — plain page view only.
 </script>
 
@@ -173,30 +190,59 @@
 					</p>
 				{/if}
 			</div>
-			<button
-				onclick={onclose}
-				class="shrink-0 rounded-lg p-1.5 transition-colors"
-				style="color: var(--color-text-secondary, #374151);"
-				aria-label="Close"
-				onmouseenter={(e) =>
-					((e.currentTarget as HTMLElement).style.background =
-						"var(--color-surface-secondary, #f3f4f6)")}
-				onmouseleave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="18"
-					height="18"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
+			<div class="flex shrink-0 items-center gap-1">
+				<!-- Bookmark / save button -->
+				<button
+					onclick={toggleSave}
+					class="rounded-lg p-1.5 transition-colors"
+					style="color: {isSaved ? 'rgb(37,99,235)' : 'var(--color-text-secondary, #374151)'};"
+					aria-label={isSaved ? "Remove from saved sources" : "Save source"}
+					title={isSaved ? "Remove from saved sources" : "Save to bookmarks"}
+					onmouseenter={(e) =>
+						((e.currentTarget as HTMLElement).style.background =
+							"var(--color-surface-secondary, #f3f4f6)")}
+					onmouseleave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
 				>
-					<line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-				</svg>
-			</button>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="18"
+						height="18"
+						viewBox="0 0 24 24"
+						fill={isSaved ? "currentColor" : "none"}
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+					</svg>
+				</button>
+				<!-- Close button -->
+				<button
+					onclick={onclose}
+					class="rounded-lg p-1.5 transition-colors"
+					style="color: var(--color-text-secondary, #374151);"
+					aria-label="Close"
+					onmouseenter={(e) =>
+						((e.currentTarget as HTMLElement).style.background =
+							"var(--color-surface-secondary, #f3f4f6)")}
+					onmouseleave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="18"
+						height="18"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+					</svg>
+				</button>
+			</div>
 		</div>
 
 		<!-- Tabs (Greenberg only) -->
