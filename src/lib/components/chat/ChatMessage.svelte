@@ -516,10 +516,10 @@
 				</div>
 			{/if}
 
-			<div class="flex w-fit flex-row flex-nowrap">
+			<div class="relative flex w-fit flex-row flex-nowrap">
 				{#if !editMode}
 					<p
-						class="disabled w-fit appearance-none whitespace-break-spaces text-wrap break-words rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-3.5 text-lg text-white dark:from-indigo-600 dark:to-blue-600"
+						class="disabled w-fit appearance-none whitespace-break-spaces text-wrap break-words rounded-2xl bg-gradient-to-r from-purple-100 to-purple-200 px-5 py-3.5 text-lg text-purple-900 dark:from-purple-200 dark:to-purple-300 dark:text-purple-950"
 					>
 						{message.content.trim()}
 					</p>
@@ -577,7 +577,7 @@
 				{/if}
 				{#if (alternatives.length > 1 && editMsdgId === null) || (!loading && !editMode)}
 					<button
-						class="hidden cursor-pointer items-center gap-1 rounded-md border border-gray-200 px-1.5 py-0.5 text-xs text-gray-400 group-hover:flex hover:flex hover:text-gray-500 dark:border-gray-700 dark:text-gray-400 dark:hover:text-gray-300 lg:-right-2"
+						class="absolute -bottom-2 -right-2 hidden cursor-pointer rounded-full bg-white p-1 text-gray-400 shadow group-hover:flex hover:text-gray-600 dark:bg-gray-800 dark:text-gray-500 dark:hover:text-gray-300"
 						title="Edit"
 						type="button"
 						onclick={() => {
@@ -586,7 +586,6 @@
 						}}
 					>
 						<CarbonPen />
-						Edit
 					</button>
 				{/if}
 			</div>
