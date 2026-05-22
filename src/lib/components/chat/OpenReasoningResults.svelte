@@ -6,12 +6,35 @@
 		content: string;
 		loading?: boolean;
 		hasNext?: boolean;
+		onClarify?: (question: string) => void;
 	}
 
-	let { content, loading = false }: Props = $props();
+	let { content, loading = false, onClarify }: Props = $props();
 
-	let isOpen = $state(false);
+	let isOpen = $state(loading);
 	let scrollEl: HTMLDivElement | undefined = $state();
+	let clarifyChosen = $state(false);
+
+	const FALLBACK_QUESTIONS = [
+		"What is the patient's age, sex, and relevant comorbidities?",
+		"Are there prior imaging studies, surgical history, or current medications?",
+		"What is the clinical urgency — is this emergent?",
+	];
+
+	// Extract up to 3 questions from the thinking stream, fall back to generic ones
+	let clarifyingQuestions = $derived.by(() => {
+		const found = [...content.matchAll(/[A-Z][^.!?]*\?/g)]
+			.map((m) => m[0].trim())
+			.filter((q) => q.length > 20 && q.length < 160)
+			.slice(0, 3);
+		if (found.length >= 3) return found;
+		return [...found, ...FALLBACK_QUESTIONS.slice(found.length)];
+	});
+
+	// Auto-open when generation starts, keep user's choice after it finishes
+	$effect(() => {
+		if (loading) isOpen = true;
+	});
 
 	// Medical sources to surface as badges when detected in the thinking stream
 	const MEDICAL_SOURCES = [
@@ -116,6 +139,26 @@
 					{/if}
 				{/if}
 			</div>
+
+			<!-- Clarifying question chips — visible while thinking, disappear once one is chosen -->
+			{#if loading && onClarify && !clarifyChosen}
+				<div class="mt-3 border-t border-indigo-500/20 pt-3">
+					<p class="mb-2 text-[10px] font-medium uppercase tracking-wide text-indigo-400/60">
+						Want to refine the answer?
+					</p>
+					<div class="flex flex-col gap-1.5">
+						{#each clarifyingQuestions as q}
+							<button
+								type="button"
+								onclick={() => { clarifyChosen = true; onClarify?.(q); }}
+								class="rounded-xl border border-indigo-500/25 bg-indigo-900/30 px-3 py-2 text-left text-xs text-indigo-200 transition-colors hover:border-indigo-400/50 hover:bg-indigo-800/40"
+							>
+								{q}
+							</button>
+						{/each}
+					</div>
+				</div>
+			{/if}
 		</div>
 	{/if}
 </div>

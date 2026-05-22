@@ -517,6 +517,7 @@
 							bind:editMsdgId
 							onretry={(payload) => onretry?.(payload)}
 							onshowAlternateMsg={(payload) => onshowAlternateMsg?.(payload)}
+							onClarify={idx === messages.length - 1 ? (q) => onmessage?.(q) : undefined}
 						/>
 					{/each}
 					{#if isReadOnly}
