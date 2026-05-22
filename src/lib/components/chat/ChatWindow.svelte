@@ -344,27 +344,68 @@
 		/what is asia\?/i.test(lastUserMessage)
 	);
 
-	const CLARIFYING_QUESTIONS = [
+	const FALLBACK_QUESTIONS = [
 		"What are the patient's age, sex, and relevant comorbidities?",
 		"Are there prior imaging studies, labs, or surgical history?",
 		"What is the urgency — emergent, urgent, or elective?",
 	];
+
+	// Pull live reasoning text from the last assistant message (both paths)
+	const THINK_EXTRACT_RE = /<think>([\s\S]*?)(?:<\/think>|$)/i;
+	let liveReasoning = $derived.by(() => {
+		const last = [...messages].reverse().find((m) => m.from === "assistant");
+		if (!last) return "";
+		const serverReasoning = (last as Message & { reasoning?: string }).reasoning ?? "";
+		const thinkMatch = THINK_EXTRACT_RE.exec(last.content ?? "");
+		return serverReasoning || thinkMatch?.[1] ?? "";
+	});
+
+	// Extract questions the model itself poses while thinking; fall back to generics
+	let CLARIFYING_QUESTIONS = $derived.by(() => {
+		const found = [...liveReasoning.matchAll(/[A-Z][^.!?\n]{15,140}\?/g)]
+			.map((m) => m[0].trim())
+			.filter((q, i, arr) => arr.indexOf(q) === i) // dedupe
+			.slice(0, 3);
+		if (found.length >= 3) return found;
+		return [...found, ...FALLBACK_QUESTIONS.slice(found.length)];
+	});
+
 	let clarifySelected = $state<string[]>([]);
 	let clarifyDismissed = $state(false);
+	let customContext = $state("");
+	let customOpen = $state(false);
 
 	$effect(() => {
 		if (!loading) {
 			clarifySelected = [];
 			clarifyDismissed = false;
+			customContext = "";
+			customOpen = false;
+		}
+	});
+
+	// Drop any selected question that was replaced as reasoning content arrives
+	$effect(() => {
+		void CLARIFYING_QUESTIONS;
+		clarifySelected = clarifySelected.filter((q) => CLARIFYING_QUESTIONS.includes(q));
+	});
+
+	$effect(() => {
+		if (loading && showClarifyPanel && !clarifyDismissed) {
+			onstop?.();
 		}
 	});
 
 	function sendClarifyingContext() {
-		if (clarifySelected.length === 0) return;
+		const parts = [...clarifySelected];
+		if (customOpen && customContext.trim()) parts.push(customContext.trim());
+		if (parts.length === 0) return;
 		onstop?.();
-		onmessage?.(clarifySelected.join("\n"));
+		onmessage?.(parts.join("\n"));
 		clarifyDismissed = true;
 		clarifySelected = [];
+		customContext = "";
+		customOpen = false;
 	}
 
 	let activeRouterExamplePrompt = $state<string | null>(null);
@@ -683,6 +724,39 @@
 									<span class="leading-snug">{q}</span>
 								</button>
 							{/each}
+
+							<!-- 4th option: free-text -->
+							<button
+								type="button"
+								onclick={() => (customOpen = !customOpen)}
+								class="flex items-center gap-3 rounded-full border px-4 py-2.5 text-left text-sm transition-all duration-200
+									{customOpen
+										? 'border-indigo-400 bg-indigo-50 text-indigo-700 shadow-sm dark:border-[#818cf8] dark:bg-[#3730a3]/40 dark:text-indigo-200'
+										: 'border-gray-200 bg-white/60 text-gray-600 hover:border-indigo-300 hover:bg-indigo-50/40 dark:border-[#3730a3]/60 dark:bg-white/5 dark:text-indigo-200/60 dark:hover:border-[#818cf8]/50 dark:hover:bg-white/10'}"
+							>
+								<span class="flex size-4 flex-none items-center justify-center rounded-full border-2 transition-all duration-200
+									{customOpen
+										? 'border-indigo-500 bg-indigo-500 dark:border-[#818cf8] dark:bg-[#818cf8]'
+										: 'border-gray-300 dark:border-indigo-400/30'}">
+									{#if customOpen}
+										<svg class="size-2.5 text-white" viewBox="0 0 12 12" fill="none">
+											<path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+										</svg>
+									{/if}
+								</span>
+								<span class="leading-snug italic">Add your own context…</span>
+							</button>
+							{#if customOpen}
+								<textarea
+									rows="2"
+									bind:value={customContext}
+									placeholder="Type additional context here…"
+									class="w-full resize-none rounded-2xl border px-4 py-2.5 text-sm outline-none transition-all duration-200
+										bg-white/60 placeholder:text-gray-400
+										border-indigo-300 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400
+										dark:border-[#818cf8]/40 dark:bg-white/5 dark:text-indigo-100 dark:placeholder:text-indigo-300/30 dark:focus:border-[#818cf8] dark:focus:ring-[#818cf8]/30"
+								></textarea>
+							{/if}
 						</div>
 						<div class="mt-3 flex items-center justify-end gap-3 border-t border-gray-100 pt-3 dark:border-[#3730a3]/40">
 							<button
@@ -695,9 +769,9 @@
 							<button
 								type="button"
 								onclick={sendClarifyingContext}
-								disabled={clarifySelected.length === 0}
+								disabled={clarifySelected.length === 0 && !(customOpen && customContext.trim())}
 								class="rounded-full px-4 py-1.5 text-xs font-medium transition-colors duration-200
-									{clarifySelected.length > 0
+									{clarifySelected.length > 0 || (customOpen && customContext.trim())
 										? 'bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-[#818cf8] dark:text-[#1e1b4b] dark:hover:bg-[#a5b4fc]'
 										: 'cursor-not-allowed bg-gray-100 text-gray-400 dark:bg-white/5 dark:text-indigo-300/30'}"
 							>
