@@ -9,7 +9,7 @@
 	import { ERROR_MESSAGES, error } from "$lib/stores/errors";
 	import { findCurrentModel } from "$lib/utils/models";
 	import type { Message } from "$lib/types/Message";
-	import { MessageUpdateStatus, MessageUpdateType } from "$lib/types/MessageUpdate";
+	import { MessageUpdateStatus, MessageUpdateType, MessageReasoningUpdateType } from "$lib/types/MessageUpdate";
 	import titleUpdate from "$lib/stores/titleUpdate";
 	import file2base64 from "$lib/utils/file2base64";
 	import { addChildren } from "$lib/utils/tree/addChildren";
@@ -371,6 +371,12 @@
 						...(messageToWriteTo.files ?? []),
 						{ type: "hash", value: update.sha, mime: update.mime, name: update.name },
 					];
+				} else if (
+					update.type === MessageUpdateType.Reasoning &&
+					update.subtype === MessageReasoningUpdateType.Stream
+				) {
+					messageToWriteTo.reasoning ??= "";
+					messageToWriteTo.reasoning += update.token;
 				} else if (update.type === MessageUpdateType.RouterMetadata) {
 					// Update router metadata immediately when received
 					messageToWriteTo.routerMetadata = {

@@ -327,6 +327,14 @@
 				oncopy={handleCopy}
 				onclick={(e) => { handleContentClick(e); handleCiteClick(e); }}
 			>
+				{#if message.reasoning && !hasClientThink}
+					<OpenReasoningResults
+						content={message.reasoning}
+						loading={isLast && loading}
+						onClarify={isLast ? onClarify : undefined}
+					/>
+				{/if}
+
 				{#if isLast && loading && blocks.length === 0}
 					<IconLoading classNames="loading inline ml-2 first:ml-0" />
 				{/if}
