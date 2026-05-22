@@ -357,7 +357,7 @@
 		if (!last) return "";
 		const serverReasoning = (last as Message & { reasoning?: string }).reasoning ?? "";
 		const thinkMatch = THINK_EXTRACT_RE.exec(last.content ?? "");
-		return serverReasoning || thinkMatch?.[1] ?? "";
+		return serverReasoning || (thinkMatch?.[1] ?? "");
 	});
 
 	// Extract questions the model itself poses while thinking; fall back to generics
