@@ -13,12 +13,10 @@
 	let isOpen = $state(loading);
 	let scrollEl: HTMLDivElement | undefined = $state();
 
-	// Auto-open when generation starts, keep user's choice after it finishes
 	$effect(() => {
 		if (loading) isOpen = true;
 	});
 
-	// Medical sources to surface as badges when detected in the thinking stream
 	const MEDICAL_SOURCES = [
 		"Greenberg", "Youmans", "Winn", "Rhoton", "Schmidek", "Bernstein",
 		"Principles of Neurosurgery", "NEJM", "Lancet", "Neurosurgery",
@@ -29,7 +27,6 @@
 		MEDICAL_SOURCES.filter((src) => content.toLowerCase().includes(src.toLowerCase()))
 	);
 
-	// Auto-scroll to bottom while streaming
 	$effect(() => {
 		if (loading && isOpen && content) {
 			tick().then(() => {
@@ -40,7 +37,6 @@
 </script>
 
 <div class="my-2 w-full overflow-hidden rounded-2xl border border-indigo-500/20 bg-[#1e2a5e]/40 backdrop-blur-sm">
-	<!-- Header -->
 	<button
 		type="button"
 		onclick={() => (isOpen = !isOpen)}

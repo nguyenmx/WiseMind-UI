@@ -337,6 +337,28 @@
 	let isFileUploadEnabled = $derived(activeMimeTypes.length > 0);
 	let focused = $state(false);
 
+	const CLARIFYING_QUESTIONS = [
+		"What are the patient's age, sex, and relevant comorbidities?",
+		"Are there prior imaging studies, labs, or surgical history?",
+		"What is the urgency — emergent, urgent, or elective?",
+	];
+	let clarifySelected = $state<string[]>([]);
+	let clarifyDismissed = $state(false);
+
+	$effect(() => {
+		if (!loading) {
+			clarifySelected = [];
+			clarifyDismissed = false;
+		}
+	});
+
+	function sendClarifyingContext() {
+		if (clarifySelected.length === 0) return;
+		onmessage?.(clarifySelected.join("\n"));
+		clarifyDismissed = true;
+		clarifySelected = [];
+	}
+
 	let activeRouterExamplePrompt = $state<string | null>(null);
 	// Use MCP examples when all base servers are enabled, otherwise use router examples
 	let activeExamples = $derived<RouterExample[]>(
@@ -618,6 +640,63 @@
 					/>
 				{/if}
 			</div>
+			{#if loading && !clarifyDismissed && !isReadOnly && !lastIsError}
+				<div class="mb-3 w-full rounded-2xl border border-gray-200 bg-white/80 p-3 backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+					<p class="mb-2.5 text-[11px] font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
+						Add context to your query
+					</p>
+					<div class="flex flex-col gap-2">
+						{#each CLARIFYING_QUESTIONS as q}
+							{@const selected = clarifySelected.includes(q)}
+							<button
+								type="button"
+								onclick={() => {
+									clarifySelected = selected
+										? clarifySelected.filter((x) => x !== q)
+										: [...clarifySelected, q];
+								}}
+								class="flex items-center gap-3 rounded-full border px-4 py-2.5 text-left text-sm transition-all
+									{selected
+										? 'border-indigo-500 bg-indigo-50 text-indigo-700 dark:border-indigo-400 dark:bg-indigo-900/40 dark:text-indigo-300'
+										: 'border-gray-200 bg-white text-gray-600 hover:border-indigo-300 hover:bg-indigo-50/40 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-300 dark:hover:border-indigo-500/60'}"
+							>
+								<span class="flex size-4 flex-none items-center justify-center rounded-full border transition-all
+									{selected
+										? 'border-indigo-500 bg-indigo-500 dark:border-indigo-400 dark:bg-indigo-400'
+										: 'border-gray-300 dark:border-gray-500'}">
+									{#if selected}
+										<svg class="size-2.5 text-white" viewBox="0 0 12 12" fill="none">
+											<path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+										</svg>
+									{/if}
+								</span>
+								<span class="leading-snug">{q}</span>
+							</button>
+						{/each}
+					</div>
+					<div class="mt-3 flex items-center justify-end gap-3">
+						<button
+							type="button"
+							onclick={() => (clarifyDismissed = true)}
+							class="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+						>
+							Dismiss
+						</button>
+						<button
+							type="button"
+							onclick={sendClarifyingContext}
+							disabled={clarifySelected.length === 0}
+							class="rounded-full px-4 py-1.5 text-xs font-medium transition-colors
+								{clarifySelected.length > 0
+									? 'bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600'
+									: 'cursor-not-allowed bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500'}"
+						>
+							Add context
+						</button>
+					</div>
+				</div>
+			{/if}
+
 			<form
 				tabindex="-1"
 				aria-label={isFileUploadEnabled ? "file dropzone" : undefined}
@@ -666,11 +745,6 @@
 								{modelIsMultimodal}
 								{modelSupportsTools}
 								bind:focused
-								clarifyingQuestions={loading ? [
-									"What are the patient's age, sex, and relevant comorbidities?",
-									"Are there prior imaging studies, labs, or surgical history?",
-									"What is the urgency — emergent, urgent, or elective?",
-								] : []}
 							/>
 						{/if}
 
