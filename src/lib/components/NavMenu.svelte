@@ -13,6 +13,10 @@
 	import Logo from "$lib/components/icons/Logo.svelte";
 	import IconSun from "$lib/components/icons/IconSun.svelte";
 	import IconMoon from "$lib/components/icons/IconMoon.svelte";
+	import IconSquarePen from "~icons/lucide/square-pen";
+	import IconFilePlus from "~icons/lucide/file-plus-2";
+	import IconPanelLeftClose from "~icons/lucide/panel-left-close";
+	import IconSearch from "~icons/lucide/search";
 	import { switchTheme, subscribeToTheme } from "$lib/switchTheme";
 	import { isAborted } from "$lib/stores/isAborted";
 	import { onDestroy } from "svelte";
@@ -42,6 +46,7 @@
 		p?: number;
 		ondeleteConversation?: (id: string) => void;
 		oneditConversationTitle?: (payload: { id: string; title: string }) => void;
+		oncollapse?: () => void;
 	}
 
 	let {
@@ -50,6 +55,7 @@
 		p = $bindable(0),
 		ondeleteConversation,
 		oneditConversationTitle,
+		oncollapse,
 	}: Props = $props();
 
 	let hasMore = $state(true);
@@ -130,28 +136,54 @@
 </script>
 
 <div
-	class="sticky top-0 flex flex-none touch-none items-center justify-between px-1.5 py-3.5 max-sm:pt-0"
+	class="sticky top-0 flex flex-none touch-none items-center justify-between bg-inherit px-3 py-3.5 max-sm:pt-0"
 >
 	<a
-		class="flex select-none items-center rounded-xl text-lg font-semibold"
+		class="flex select-none items-center rounded-xl"
 		href="{publicConfig.PUBLIC_ORIGIN}{base}/"
 	>
-		<Logo classNames="mr-[2px]" />
-		{publicConfig.PUBLIC_APP_NAME}
+		<div class="flex size-10 items-center justify-center rounded-full {isDark ? 'bg-[#c7d2fe]' : 'bg-gradient-to-br from-white via-purple-100 to-purple-300'}">
+			<Logo classNames="size-10" />
+		</div>
 	</a>
-	<a
-		href={`${base}/`}
-		onclick={handleNewChatClick}
-		class="flex rounded-lg border bg-white px-2 py-0.5 text-center shadow-sm hover:shadow-none dark:border-gray-600 dark:bg-gray-700 sm:text-smd"
-		title="Ctrl/Cmd + Shift + O"
-	>
-		New Chat
-	</a>
+	{#if oncollapse}
+		<button
+			onclick={oncollapse}
+			aria-label="Collapse sidebar"
+			class="flex size-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+		>
+			<IconPanelLeftClose class="size-5" />
+		</button>
+	{/if}
 </div>
 
 <div
-	class="scrollbar-custom flex touch-pan-y flex-col gap-1 overflow-y-auto rounded-r-xl border border-l-0 border-gray-100 from-gray-50 px-3 pb-3 pt-2 text-[.9rem] dark:border-transparent dark:from-gray-800/30 max-sm:bg-gradient-to-t md:bg-gradient-to-l"
+	class="scrollbar-custom flex touch-pan-y flex-col gap-1 overflow-y-auto px-3 pb-3 pt-2 text-[.9rem]"
 >
+	<a
+		href={`${base}/`}
+		onclick={handleNewChatClick}
+		class="flex h-[2.15rem] w-full flex-none items-center gap-1.5 rounded-lg pl-2.5 pr-2 text-[.9rem] text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+		title="Ctrl/Cmd + Shift + O"
+	>
+		<IconSquarePen class="size-4 shrink-0" />
+		New Chat
+	</a>
+	<button
+		class="flex h-[2.15rem] w-full flex-none items-center gap-1.5 rounded-lg pl-2.5 pr-2 text-[.9rem] text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+	>
+		<IconSearch class="size-4 shrink-0" />
+		Search Chat
+	</button>
+	<a
+		href="{base}/saved-sources"
+		target="_blank"
+		rel="noopener noreferrer"
+		class="flex h-[2.15rem] w-full flex-none items-center gap-1.5 rounded-lg pl-2.5 pr-2 text-[.9rem] text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+	>
+		<IconFilePlus class="size-4 shrink-0" />
+		Add Source
+	</a>
 	<div class="flex flex-col gap-0.5">
 		{#each Object.entries(groupedConversations) as [group, convs]}
 			{#if convs.length}
@@ -169,7 +201,7 @@
 	{/if}
 </div>
 <div
-	class="flex touch-none flex-col gap-1 rounded-r-xl border border-l-0 border-gray-100 p-3 text-sm dark:border-transparent md:mt-3 md:bg-gradient-to-l md:from-gray-50 md:dark:from-gray-800/30"
+	class="flex touch-none flex-col gap-1 p-3 text-sm"
 >
 	{#if user?.username || user?.email}
 		<div

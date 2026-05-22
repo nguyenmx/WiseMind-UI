@@ -2,7 +2,7 @@
 	import "../styles/main.css";
 
 	import { onDestroy, onMount, untrack } from "svelte";
-	import { goto } from "$app/navigation";
+	import { goto, onNavigate } from "$app/navigation";
 	import { base } from "$app/paths";
 	import { page } from "$app/state";
 
@@ -21,6 +21,7 @@
 	import { isAborted } from "$lib/stores/isAborted";
 	import { isPro } from "$lib/stores/isPro";
 	import IconShare from "$lib/components/icons/IconShare.svelte";
+	import IconPanelLeftOpen from "~icons/lucide/panel-left-open";
 	import { shareModal } from "$lib/stores/shareModal";
 	import BackgroundGenerationPoller from "$lib/components/BackgroundGenerationPoller.svelte";
 	import { requireAuthUser } from "$lib/utils/auth";
@@ -39,6 +40,7 @@
 	});
 
 	let isNavCollapsed = $state(false);
+	let isHomePage = $derived(page.route.id === "/");
 
 	let errorToastTimeout: ReturnType<typeof setTimeout>;
 	let currentError: string | undefined = $state();
@@ -192,6 +194,17 @@
 		!$settings.welcomeModalSeen &&
 			!(page.data.shared === true && page.route.id?.startsWith("/conversation/"))
 	);
+
+	// Smooth cross-fade between the landing page and conversation pages
+	onNavigate((navigation) => {
+		if (!document.startViewTransition) return;
+		return new Promise((resolve) => {
+			document.startViewTransition(async () => {
+				resolve();
+				await navigation.complete;
+			});
+		});
+	});
 </script>
 
 <svelte:head>
@@ -254,9 +267,9 @@
 <BackgroundGenerationPoller />
 
 <div
-	class="fixed grid h-full w-screen grid-cols-1 grid-rows-[auto,1fr] overflow-hidden text-smd {!isNavCollapsed
-		? 'md:grid-cols-[290px,1fr]'
-		: 'md:grid-cols-[0px,1fr]'} transition-[300ms] [transition-property:grid-template-columns] dark:text-gray-300 md:grid-rows-[1fr]"
+	class="fixed grid h-full w-screen grid-cols-1 grid-rows-[auto,1fr] overflow-hidden text-smd dark:text-gray-300
+		{!isNavCollapsed ? 'md:grid-cols-[290px,1fr]' : 'md:grid-cols-[0px,1fr]'}
+		transition-[300ms] [transition-property:grid-template-columns] md:grid-rows-[1fr]"
 >
 	<ExpandNavigation
 		isCollapsed={isNavCollapsed}
@@ -265,6 +278,16 @@
 			? 'left-[290px]'
 			: 'left-0'} *:transition-transform"
 	/>
+
+	{#if isNavCollapsed}
+		<button
+			onclick={() => (isNavCollapsed = false)}
+			aria-label="Open sidebar"
+			class="absolute left-3 top-1 z-20 hidden size-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 md:flex"
+		>
+			<IconPanelLeftOpen class="size-5" />
+		</button>
+	{/if}
 
 	<!-- Saved sources button — opens in a new tab -->
 	<a
@@ -308,16 +331,18 @@
 			user={data.user}
 			ondeleteConversation={(id) => deleteConversation(id)}
 			oneditConversationTitle={(payload) => editConversationTitle(payload.id, payload.title)}
+			oncollapse={() => (isNavCollapsed = !isNavCollapsed)}
 		/>
 	</MobileNav>
 	<nav
-		class="grid max-h-dvh grid-cols-1 grid-rows-[auto,1fr,auto] overflow-hidden *:w-[290px] max-md:hidden"
+		class="grid h-full grid-cols-1 grid-rows-[auto,1fr,auto] overflow-hidden *:w-[290px] max-md:hidden bg-white dark:bg-[#1e1b4b]"
 	>
 		<NavMenu
 			{conversations}
 			user={data.user}
 			ondeleteConversation={(id) => deleteConversation(id)}
 			oneditConversationTitle={(payload) => editConversationTitle(payload.id, payload.title)}
+			oncollapse={() => (isNavCollapsed = !isNavCollapsed)}
 		/>
 	</nav>
 	{#if currentError}

@@ -9,6 +9,7 @@
 	let el: HTMLElement | undefined = $state();
 
 	onMount(() => {
+		el?.removeAttribute("hidden");
 		el?.ownerDocument.body.appendChild(el);
 	});
 

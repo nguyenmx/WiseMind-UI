@@ -554,8 +554,8 @@
 		class="pointer-events-none absolute inset-x-0 bottom-0 z-0 mx-auto flex w-full
 			max-w-3xl flex-col items-center justify-center bg-gradient-to-t from-white
 			via-white/100 to-white/0 px-3.5 pt-2 dark:border-gray-800
-			dark:from-gray-900 dark:via-gray-900/100
-			dark:to-gray-900/0 max-sm:py-0 sm:px-5 md:pb-4 xl:max-w-4xl [&>*]:pointer-events-auto"
+			dark:from-[#1e1b4b] dark:via-[#1e1b4b]/100
+			dark:to-[#1e1b4b]/0 max-sm:py-0 sm:px-5 md:pb-4 xl:max-w-4xl [&>*]:pointer-events-auto"
 	>
 		{#if !draft.length && !messages.length && !sources.length && !loading && currentModel.isRouter && activeExamples.length && !hideRouterExamples && !lastIsError && $mcpServersLoaded}
 			<div
@@ -626,7 +626,9 @@
 					handleSubmit();
 				}}
 				class={{
-					"flex w-full max-w-4xl flex-1 items-center rounded-xl border bg-gray-100 dark:border-gray-700 dark:bg-gray-800": true,
+					"flex w-full max-w-4xl flex-1 items-center rounded-full border backdrop-blur-xl shadow-lg transition-all duration-300": true,
+					"border-indigo-300 bg-white shadow-[0_8px_30px_rgba(99,102,241,0.15)] dark:border-[#818cf8] dark:bg-[#1e2a5e] dark:shadow-[0_0_20px_rgba(129,140,248,0.2)]": focused,
+					"border-gray-200 bg-white/90 hover:border-indigo-200 dark:border-[#3730a3] dark:bg-[#1e2a5e]/80 dark:hover:border-[#818cf8]/50": !focused,
 					"opacity-30": isReadOnly,
 					"max-sm:mb-4": focused && isVirtualKeyboard(),
 				}}
@@ -708,10 +710,10 @@
 								{/if}
 							</button>
 							<button
-								class="btn mr-2 flex-none size-8 rounded-full border bg-white text-black shadow transition-none enabled:hover:bg-white enabled:hover:shadow-inner dark:border-transparent dark:bg-gray-600 dark:text-white dark:hover:enabled:bg-black sm:size-7 {!draft ||
-								isReadOnly
-									? ''
-									: '!bg-black !text-white dark:!bg-white dark:!text-black'}"
+								class="btn mr-2 flex-none size-8 rounded-full border transition-all duration-300 sm:size-7
+									{!draft || isReadOnly
+										? 'cursor-not-allowed scale-95 border-gray-200 bg-gray-100 text-gray-400 dark:border-transparent dark:bg-[#3730a3]/50 dark:text-indigo-300/50'
+										: 'scale-100 border-transparent bg-indigo-600 text-white shadow-md hover:bg-indigo-700 dark:bg-[#818cf8] dark:text-white dark:hover:bg-[#a5b4fc]'}"
 								disabled={!draft || isReadOnly}
 								type="submit"
 								aria-label="Send message"

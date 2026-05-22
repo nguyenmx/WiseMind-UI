@@ -5,7 +5,7 @@
 </script>
 
 <div class={"flex-none select-none max-sm:hidden " + (animating ? "animate-pulse" : "")}>
-	<div class={"overflow-hidden bg-white dark:bg-white/90 dark:shadow-white/25 flex items-center justify-center " + classNames}>
+	<div class={"overflow-hidden bg-white dark:bg-[#c7d2fe] dark:shadow-[#c7d2fe]/25 flex items-center justify-center " + classNames}>
 		<img
 			src={logoSrc}
 			alt="WiseFind AI"

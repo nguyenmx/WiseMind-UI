@@ -309,7 +309,7 @@
 			animating={isLast && loading}
 		/>
 		<div
-			class="relative flex min-w-[60px] flex-col gap-2 break-words rounded-2xl border border-gray-100 bg-gradient-to-br from-gray-200 px-5 py-3.5 text-gray-600 prose-pre:my-2 dark:border-gray-800 dark:from-gray-800/80 dark:text-gray-300"
+			class="relative flex min-w-[60px] flex-col gap-2 break-words rounded-2xl border border-gray-100 bg-gradient-to-br from-gray-200 px-4 py-2.5 text-gray-600 prose-pre:my-1.5 dark:border-[#818cf8]/30 dark:bg-[#252d5e] dark:from-[#252d5e] dark:text-gray-200"
 		>
 			{#if message.files?.length}
 				<div class="flex h-fit flex-wrap gap-x-5 gap-y-2">
@@ -359,7 +359,7 @@
 									/>
 								{:else if part && part.trim().length > 0}
 									<div
-										class="prose prose-lg max-w-none dark:prose-invert max-sm:prose-sm prose-headings:font-semibold prose-h1:text-lg prose-h2:text-base prose-h3:text-base prose-pre:bg-gray-800 prose-img:my-0 prose-img:cursor-pointer prose-img:rounded-lg dark:prose-pre:bg-gray-900"
+										class="prose prose-base max-w-none dark:prose-invert max-sm:prose-sm prose-headings:font-semibold prose-h1:text-lg prose-h2:text-base prose-h3:text-base prose-pre:bg-gray-800 prose-img:my-0 prose-img:cursor-pointer prose-img:rounded-lg dark:prose-pre:bg-gray-900"
 									>
 										<MarkdownRenderer content={part} loading={isLast && loading} {wisemindSources} />
 									</div>
@@ -367,7 +367,7 @@
 							{/each}
 						{:else}
 							<div
-								class="prose prose-lg max-w-none dark:prose-invert max-sm:prose-sm prose-headings:font-semibold prose-h1:text-lg prose-h2:text-base prose-h3:text-base prose-pre:bg-gray-800 prose-img:my-0 prose-img:cursor-pointer prose-img:rounded-lg dark:prose-pre:bg-gray-900"
+								class="prose prose-base max-w-none dark:prose-invert max-sm:prose-sm prose-headings:font-semibold prose-h1:text-lg prose-h2:text-base prose-h3:text-base prose-pre:bg-gray-800 prose-img:my-0 prose-img:cursor-pointer prose-img:rounded-lg dark:prose-pre:bg-gray-900"
 							>
 								<MarkdownRenderer content={block.content} loading={isLast && loading} {wisemindSources} />
 							</div>
@@ -519,7 +519,7 @@
 			<div class="relative flex w-fit flex-row flex-nowrap">
 				{#if !editMode}
 					<p
-						class="disabled w-fit appearance-none whitespace-break-spaces text-wrap break-words rounded-2xl bg-gradient-to-r from-purple-100 to-purple-200 px-5 py-3.5 text-lg text-purple-900 dark:from-purple-200 dark:to-purple-300 dark:text-purple-950"
+						class="disabled w-fit appearance-none whitespace-break-spaces text-wrap break-words rounded-2xl bg-[#c7d2fe] px-5 py-3.5 text-lg text-[#1e1b4b]"
 					>
 						{message.content.trim()}
 					</p>

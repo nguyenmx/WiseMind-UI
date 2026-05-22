@@ -52,8 +52,8 @@ export function getThemePreference(): ThemePreference {
 		currentPreference = raw;
 		return raw;
 	}
-	currentPreference = "system";
-	return "system";
+	currentPreference = "dark";
+	return "dark";
 }
 
 /**
