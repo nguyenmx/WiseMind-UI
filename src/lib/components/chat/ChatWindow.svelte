@@ -337,6 +337,13 @@
 	let isFileUploadEnabled = $derived(activeMimeTypes.length > 0);
 	let focused = $state(false);
 
+	let lastUserMessage = $derived(
+		[...messages].reverse().find((m) => m.from === "user")?.content ?? ""
+	);
+	let showClarifyPanel = $derived(
+		/what is asia\?/i.test(lastUserMessage)
+	);
+
 	const CLARIFYING_QUESTIONS = [
 		"What are the patient's age, sex, and relevant comorbidities?",
 		"Are there prior imaging studies, labs, or surgical history?",
@@ -354,6 +361,7 @@
 
 	function sendClarifyingContext() {
 		if (clarifySelected.length === 0) return;
+		onstop?.();
 		onmessage?.(clarifySelected.join("\n"));
 		clarifyDismissed = true;
 		clarifySelected = [];
@@ -640,59 +648,62 @@
 					/>
 				{/if}
 			</div>
-			{#if loading && !clarifyDismissed && !isReadOnly && !lastIsError}
-				<div class="mb-3 w-full rounded-2xl border border-gray-200 bg-white/80 p-3 backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
-					<p class="mb-2.5 text-[11px] font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
-						Add context to your query
-					</p>
-					<div class="flex flex-col gap-2">
-						{#each CLARIFYING_QUESTIONS as q}
-							{@const selected = clarifySelected.includes(q)}
+			{#if loading && showClarifyPanel && !clarifyDismissed && !isReadOnly && !lastIsError}
+				<div class="mb-3 w-full max-w-4xl rounded-2xl border backdrop-blur-xl shadow-lg transition-all duration-300
+					border-gray-200 bg-white/90 dark:border-[#3730a3] dark:bg-[#1e2a5e]/80">
+					<div class="px-5 py-3">
+						<p class="mb-3 text-[11px] font-medium uppercase tracking-wide text-gray-400 dark:text-indigo-300/60">
+							Add context to your query
+						</p>
+						<div class="flex flex-col gap-2">
+							{#each CLARIFYING_QUESTIONS as q}
+								{@const selected = clarifySelected.includes(q)}
+								<button
+									type="button"
+									onclick={() => {
+										clarifySelected = selected
+											? clarifySelected.filter((x) => x !== q)
+											: [...clarifySelected, q];
+									}}
+									class="flex items-center gap-3 rounded-full border px-4 py-2.5 text-left text-sm transition-all duration-200
+										{selected
+											? 'border-indigo-400 bg-indigo-50 text-indigo-700 shadow-sm dark:border-[#818cf8] dark:bg-[#3730a3]/40 dark:text-indigo-200'
+											: 'border-gray-200 bg-white/60 text-gray-600 hover:border-indigo-300 hover:bg-indigo-50/40 dark:border-[#3730a3]/60 dark:bg-white/5 dark:text-indigo-200/60 dark:hover:border-[#818cf8]/50 dark:hover:bg-white/10'}"
+								>
+									<span class="flex size-4 flex-none items-center justify-center rounded-full border-2 transition-all duration-200
+										{selected
+											? 'border-indigo-500 bg-indigo-500 dark:border-[#818cf8] dark:bg-[#818cf8]'
+											: 'border-gray-300 dark:border-indigo-400/30'}">
+										{#if selected}
+											<svg class="size-2.5 text-white" viewBox="0 0 12 12" fill="none">
+												<path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+											</svg>
+										{/if}
+									</span>
+									<span class="leading-snug">{q}</span>
+								</button>
+							{/each}
+						</div>
+						<div class="mt-3 flex items-center justify-end gap-3 border-t border-gray-100 pt-3 dark:border-[#3730a3]/40">
 							<button
 								type="button"
-								onclick={() => {
-									clarifySelected = selected
-										? clarifySelected.filter((x) => x !== q)
-										: [...clarifySelected, q];
-								}}
-								class="flex items-center gap-3 rounded-full border px-4 py-2.5 text-left text-sm transition-all
-									{selected
-										? 'border-indigo-500 bg-indigo-50 text-indigo-700 dark:border-indigo-400 dark:bg-indigo-900/40 dark:text-indigo-300'
-										: 'border-gray-200 bg-white text-gray-600 hover:border-indigo-300 hover:bg-indigo-50/40 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-300 dark:hover:border-indigo-500/60'}"
+								onclick={() => (clarifyDismissed = true)}
+								class="text-xs text-gray-400 transition-colors hover:text-gray-600 dark:text-indigo-300/50 dark:hover:text-indigo-300"
 							>
-								<span class="flex size-4 flex-none items-center justify-center rounded-full border transition-all
-									{selected
-										? 'border-indigo-500 bg-indigo-500 dark:border-indigo-400 dark:bg-indigo-400'
-										: 'border-gray-300 dark:border-gray-500'}">
-									{#if selected}
-										<svg class="size-2.5 text-white" viewBox="0 0 12 12" fill="none">
-											<path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-										</svg>
-									{/if}
-								</span>
-								<span class="leading-snug">{q}</span>
+								Dismiss
 							</button>
-						{/each}
-					</div>
-					<div class="mt-3 flex items-center justify-end gap-3">
-						<button
-							type="button"
-							onclick={() => (clarifyDismissed = true)}
-							class="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-						>
-							Dismiss
-						</button>
-						<button
-							type="button"
-							onclick={sendClarifyingContext}
-							disabled={clarifySelected.length === 0}
-							class="rounded-full px-4 py-1.5 text-xs font-medium transition-colors
-								{clarifySelected.length > 0
-									? 'bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600'
-									: 'cursor-not-allowed bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500'}"
-						>
-							Add context
-						</button>
+							<button
+								type="button"
+								onclick={sendClarifyingContext}
+								disabled={clarifySelected.length === 0}
+								class="rounded-full px-4 py-1.5 text-xs font-medium transition-colors duration-200
+									{clarifySelected.length > 0
+										? 'bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-[#818cf8] dark:text-[#1e1b4b] dark:hover:bg-[#a5b4fc]'
+										: 'cursor-not-allowed bg-gray-100 text-gray-400 dark:bg-white/5 dark:text-indigo-300/30'}"
+							>
+								Add context
+							</button>
+						</div>
 					</div>
 				</div>
 			{/if}
