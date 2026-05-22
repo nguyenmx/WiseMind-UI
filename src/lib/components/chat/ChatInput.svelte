@@ -35,10 +35,9 @@
 		placeholder?: string;
 		loading?: boolean;
 		disabled?: boolean;
-		// tools removed
 		modelIsMultimodal?: boolean;
-		// Whether the currently selected model supports tool calling (incl. overrides)
 		modelSupportsTools?: boolean;
+		clarifyingQuestions?: string[];
 		children?: import("svelte").Snippet;
 		onPaste?: (e: ClipboardEvent) => void;
 		focused?: boolean;
@@ -52,14 +51,27 @@
 		placeholder = "",
 		loading = false,
 		disabled = false,
-
 		modelIsMultimodal = false,
 		modelSupportsTools = true,
+		clarifyingQuestions = [],
 		children,
 		onPaste,
 		focused = $bindable(false),
 		onsubmit,
 	}: Props = $props();
+
+	let clarifyChosen = $state(false);
+
+	$effect(() => {
+		// Reset dismissed state when a new generation starts
+		if (loading) clarifyChosen = false;
+	});
+
+	function pickClarifyingQuestion(q: string) {
+		value = value.trim() ? `${value.trim()}\n\n${q}` : q;
+		clarifyChosen = true;
+		void focusTextarea();
+	}
 
 	const onFileChange = async (e: Event) => {
 		if (!e.target) return;
@@ -421,6 +433,27 @@
 							</button>
 						</div>
 					{/if}
+		</div>
+	{/if}
+	{#if loading && clarifyingQuestions.length > 0 && !clarifyChosen}
+		<div class="w-full border-b border-gray-100 px-3 pb-2 pt-3 dark:border-gray-700">
+			<p class="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
+				Add context to your query
+			</p>
+			<ul class="flex flex-col gap-1">
+				{#each clarifyingQuestions as q}
+					<li>
+						<button
+							type="button"
+							onclick={() => pickClarifyingQuestion(q)}
+							class="flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/60"
+						>
+							<span class="mt-0.5 flex-none text-gray-400 dark:text-gray-500">&bull;</span>
+							<span>{q}</span>
+						</button>
+					</li>
+				{/each}
+			</ul>
 		</div>
 	{/if}
 	<textarea

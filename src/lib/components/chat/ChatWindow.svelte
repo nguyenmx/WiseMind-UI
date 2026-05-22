@@ -517,7 +517,6 @@
 							bind:editMsdgId
 							onretry={(payload) => onretry?.(payload)}
 							onshowAlternateMsg={(payload) => onshowAlternateMsg?.(payload)}
-							onClarify={idx === messages.length - 1 ? (q) => onmessage?.(q) : undefined}
 						/>
 					{/each}
 					{#if isReadOnly}
@@ -667,6 +666,11 @@
 								{modelIsMultimodal}
 								{modelSupportsTools}
 								bind:focused
+								clarifyingQuestions={loading ? [
+									"What are the patient's age, sex, and relevant comorbidities?",
+									"Are there prior imaging studies, labs, or surgical history?",
+									"What is the urgency — emergent, urgent, or elective?",
+								] : []}
 							/>
 						{/if}
 

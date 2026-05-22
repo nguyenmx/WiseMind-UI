@@ -56,7 +56,6 @@
 		isLast?: boolean;
 		onretry?: (payload: { id: Message["id"]; content?: string }) => void;
 		onshowAlternateMsg?: (payload: { id: Message["id"] }) => void;
-		onClarify?: (question: string) => void;
 	}
 
 	let {
@@ -70,7 +69,6 @@
 		isLast = false,
 		onretry,
 		onshowAlternateMsg,
-		onClarify,
 	}: Props = $props();
 
 	let contentEl: HTMLElement | undefined = $state();
@@ -366,7 +364,6 @@
 										content={thinkContent}
 										loading={isLast && loading && !isClosed}
 										hasNext={hasMoreLinkable}
-										onClarify={isLast ? onClarify : undefined}
 									/>
 								{:else if part && part.trim().length > 0}
 									<div
