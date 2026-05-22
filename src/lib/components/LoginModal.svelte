@@ -46,9 +46,9 @@
 				<!-- Header -->
 				<div class="relative p-6 pb-0 flex justify-between items-center">
 					<div>
-						<h2 class="text-2xl font-semibold font-['Outfit']">Welcome back</h2>
+						<h2 class="text-2xl font-semibold font-['Outfit']">Welcome</h2>
 						<p class="text-sm mt-1 {isDark ? 'text-indigo-200/70' : 'text-gray-500'}">
-							Log in to your WiseMind account
+							Log into WiseFind
 						</p>
 					</div>
 					<button
