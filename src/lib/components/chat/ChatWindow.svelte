@@ -351,24 +351,24 @@
 	];
 
 	let clarifySelected = $state<string[]>([]);
-	let clarifyDismissed = $state(false);
+	let clarifyVisible = $state(false);
 	let customContext = $state("");
 	let customOpen = $state(false);
 
+	// Show the panel as soon as loading starts for a matching query; keep it up until acted on
 	$effect(() => {
-		if (!loading) {
-			clarifySelected = [];
-			clarifyDismissed = false;
-			customContext = "";
-			customOpen = false;
+		if (loading && showClarifyPanel) {
+			clarifyVisible = true;
 		}
 	});
 
-
+	// Reset everything when a new conversation turn begins (user sends next message)
 	$effect(() => {
-		if (loading && showClarifyPanel && !clarifyDismissed) {
-			onstop?.();
-		}
+		void lastUserMessage;
+		clarifyVisible = false;
+		clarifySelected = [];
+		customContext = "";
+		customOpen = false;
 	});
 
 	function sendClarifyingContext() {
@@ -376,8 +376,8 @@
 		if (customOpen && customContext.trim()) parts.push(customContext.trim());
 		if (parts.length === 0) return;
 		onstop?.();
+		clarifyVisible = false;
 		onmessage?.(parts.join("\n"));
-		clarifyDismissed = true;
 		clarifySelected = [];
 		customContext = "";
 		customOpen = false;
@@ -664,7 +664,7 @@
 					/>
 				{/if}
 			</div>
-			{#if loading && showClarifyPanel && !clarifyDismissed && !isReadOnly && !lastIsError}
+			{#if clarifyVisible && !isReadOnly && !lastIsError}
 				<div class="mb-3 w-full max-w-4xl rounded-2xl border backdrop-blur-xl shadow-lg transition-all duration-300
 					border-gray-200 bg-white/90 dark:border-[#3730a3] dark:bg-[#1e2a5e]/80">
 					<div class="px-5 py-3">
@@ -736,7 +736,7 @@
 						<div class="mt-3 flex items-center justify-end gap-3 border-t border-gray-100 pt-3 dark:border-[#3730a3]/40">
 							<button
 								type="button"
-								onclick={() => (clarifyDismissed = true)}
+								onclick={() => (clarifyVisible = false)}
 								class="text-xs text-gray-400 transition-colors hover:text-gray-600 dark:text-indigo-300/50 dark:hover:text-indigo-300"
 							>
 								Dismiss
