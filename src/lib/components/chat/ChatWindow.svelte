@@ -344,31 +344,11 @@
 		/what is asia\?/i.test(lastUserMessage)
 	);
 
-	const FALLBACK_QUESTIONS = [
+	const CLARIFYING_QUESTIONS = [
 		"What are the patient's age, sex, and relevant comorbidities?",
 		"Are there prior imaging studies, labs, or surgical history?",
 		"What is the urgency — emergent, urgent, or elective?",
 	];
-
-	// Pull live reasoning text from the last assistant message (both paths)
-	const THINK_EXTRACT_RE = /<think>([\s\S]*?)(?:<\/think>|$)/i;
-	let liveReasoning = $derived.by(() => {
-		const last = [...messages].reverse().find((m) => m.from === "assistant");
-		if (!last) return "";
-		const serverReasoning = (last as Message & { reasoning?: string }).reasoning ?? "";
-		const thinkMatch = THINK_EXTRACT_RE.exec(last.content ?? "");
-		return serverReasoning || (thinkMatch?.[1] ?? "");
-	});
-
-	// Extract questions the model itself poses while thinking; fall back to generics
-	let CLARIFYING_QUESTIONS = $derived.by(() => {
-		const found = [...liveReasoning.matchAll(/[A-Z][^.!?\n]{15,140}\?/g)]
-			.map((m) => m[0].trim())
-			.filter((q, i, arr) => arr.indexOf(q) === i) // dedupe
-			.slice(0, 3);
-		if (found.length >= 3) return found;
-		return [...found, ...FALLBACK_QUESTIONS.slice(found.length)];
-	});
 
 	let clarifySelected = $state<string[]>([]);
 	let clarifyDismissed = $state(false);
@@ -384,11 +364,6 @@
 		}
 	});
 
-	// Drop any selected question that was replaced as reasoning content arrives
-	$effect(() => {
-		void CLARIFYING_QUESTIONS;
-		clarifySelected = clarifySelected.filter((q) => CLARIFYING_QUESTIONS.includes(q));
-	});
 
 	$effect(() => {
 		if (loading && showClarifyPanel && !clarifyDismissed) {
