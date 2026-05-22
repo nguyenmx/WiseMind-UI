@@ -31,10 +31,12 @@
 	import IconSearch from "~icons/lucide/search";
 	import IconArrowUpRight from "~icons/lucide/arrow-up-right";
 	import LoginModal from "$lib/components/LoginModal.svelte";
+	import CreateProfileModal from "$lib/components/CreateProfileModal.svelte";
 
 	let { data } = $props();
 
 	let isLoginOpen = $state(false);
+	let isSignupOpen = $state(false);
 
 	let hasModels = $derived(Boolean(data.models?.length));
 	let files: File[] = $state([]);
@@ -361,7 +363,13 @@
 	</div>
 </div>
 
-<LoginModal isOpen={isLoginOpen} onclose={() => (isLoginOpen = false)} {isDark} />
+<LoginModal
+	isOpen={isLoginOpen}
+	onclose={() => (isLoginOpen = false)}
+	onSwitchToSignup={() => { isLoginOpen = false; isSignupOpen = true; }}
+	{isDark}
+/>
+<CreateProfileModal isOpen={isSignupOpen} onclose={() => (isSignupOpen = false)} {isDark} />
 
 {:else}
 <div class="mx-auto my-20 max-w-xl rounded-xl border p-6 text-center dark:border-gray-700">
